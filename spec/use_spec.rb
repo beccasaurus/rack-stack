@@ -2,6 +2,28 @@ require "spec_helper"
 
 describe Rack::ConditionalBuilder::Use do
 
+  # Use
+  #   inserts middleware conditionally (rack-test)
+  #   is added to the #stack correctly (unit-y ... even under #stack, really.)
+  #
+  #   conditional builder spec (actually test the rack integration.  total behavior.)
+  #     use
+  #     run
+  #     map
+  #     all
+  #
+  #   # These tests prove that use/run/map build the stack up as we expect them to when called.
+  #   #stack spec
+  #     use
+  #     run
+  #     map
+  #
+  #   # This test proves that we print out stacks correctly.
+  #   # This is kindof a unit test for StackTracer, but we 
+  #   # use call builder.stack_trace so it's really an integration 
+  #   # test for printing out stack.
+  #   #stack_tracer spec
+
   # Sample middleware class for our examples below.
   class FooMiddleware
     def initialize(app) @app = app end
@@ -61,7 +83,7 @@ describe Rack::ConditionalBuilder::Use do
   it "can #use a named middleware with arguments using a mix of :if/:unless and procs/==="
   it "can #use with a block argument"
 
-  describe "#to_text" do
+  describe "#stack_trace" do
     it "renders middleware class name"
     it "renders middleware arguments, if any"
     it "renders :if/:unless conditionals with <proc>"
