@@ -21,7 +21,7 @@ Gem::Specification.new do |gem|
   gem.executables   = files.grep(%r{^bin/.*}).map {|f| File.basename(f) }
   gem.test_files    = files.grep(%r{^spec/.*})
   gem.require_paths = ["lib"]
-  gem.version       = Rack::ConditionalBuilder::Version
+  gem.version       = Rack::ConditionalBuilder::VERSION
 
   gem.add_dependency "rack"
 
