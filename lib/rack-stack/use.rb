@@ -1,3 +1,4 @@
+__END__
 module Rack
   class ConditionalBuilder::Use
     attr_accessor :name

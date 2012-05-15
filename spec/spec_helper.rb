@@ -1,3 +1,3 @@
 require "rspec"
-require "rack-conditional-builder"
+require "rack-stack"
 require "ruby_testing_toolbox/rspec"

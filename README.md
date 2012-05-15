@@ -1,2 +1,2 @@
-Rack::ConditionalBuilder
-========================
+RackStack
+=========

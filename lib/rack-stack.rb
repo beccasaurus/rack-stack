@@ -1,3 +1,9 @@
+class RackStack
+end
+
+require "rack_stack/version"
+
+__END__
 module Rack
   class ConditionalBuilder
 
