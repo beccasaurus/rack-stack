@@ -1,11 +1,17 @@
+require "rack"
+
 class RackStack
+
+  attr_accessor :stack
 
   def initialize(default_app = nil, &block)
     @default_app = nil
-    @middleware = []
-    @mappings = []
-    @applications = []
-    instance_eval &block
+    @stack = []
+    if block.arity <= 0
+      instance_eval &block
+    else
+      block.call self
+    end
   end
 
   def self.app(default_app = nil, &block)
@@ -27,29 +33,36 @@ class RackStack
     end
   end
 
+  def sort_stack!
+    @stack = @stack.sort_by do |layer|
+      [RackMiddleware, RackMap, RackApplication].index layer.class
+    end
+  end
+
   def to_app
     fail "missing run or map statement" if stack.all? {|app| app.is_a? RackMiddleware }
     self
   end
 
   def call(env)
+    unless @sorted
+      sort_stack!
+      @sorted = true
+    end
+
     StackResponder.new(stack, env).finish
   end
 
   def use(klass, *args, &block)
-    @middleware << RackMiddleware.new(klass, *args, &block)
+    @stack << RackMiddleware.new(klass, *args, &block)
   end
 
   def map(path, &block)
-    @mappings << RackMap.new(path, &block)
+    @stack << RackMap.new(path, &block)
   end
 
   def run(application)
-    @applications << RackApplication.new(application)
-  end
-
-  def stack
-    @middleware + @mappings + @applications
+    @stack << RackApplication.new(application)
   end
 
   class RackApplication
