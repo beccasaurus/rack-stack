@@ -73,6 +73,15 @@ class RackStack
     StackTracer.new(stack).trace
   end
 
+  class NoMatchingApplicationError < StandardError
+    attr_accessor :stack, :env
+
+    def initialize(attributes = {})
+      self.stack = attributes[:stack]
+      self.env = attributes[:env]
+    end
+  end
+
   class RackApplication
     attr_accessor :application
 
@@ -157,7 +166,7 @@ class RackStack
       elsif @default_app
         @default_app.call(@env)
       else
-        raise "Couldn't find a matching application for request #{Rack::Request.new(@env).url}.  Stack: \n#{@stack_level} #{@stack.inspect}"
+        raise NoMatchingApplicationError.new(:stack => @stack, :env => @env)
       end
     end
   end
