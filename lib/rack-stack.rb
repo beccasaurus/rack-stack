@@ -1,4 +1,5 @@
 require "rack"
+require "stringio"
 
 class RackStack
 
@@ -7,10 +8,16 @@ class RackStack
   def initialize(default_app = nil, &block)
     @default_app = nil
     @stack = []
-    if block.arity <= 0
-      instance_eval &block
-    else
-      block.call self
+    configure &block
+  end
+
+  def configure(&block)
+    if block
+      if block.arity <= 0
+        instance_eval &block
+      else
+        block.call self
+      end
     end
   end
 
@@ -57,6 +64,7 @@ class RackStack
     @stack << RackMiddleware.new(klass, *args, &block)
   end
 
+  # TODO add test for "map '/' do |outer_env|" to make sure outer_env is available in block
   def map(path, &block)
     @stack << RackMap.new(path, &block)
   end
@@ -65,7 +73,13 @@ class RackStack
     @stack << RackApplication.new(application)
   end
 
+  def trace
+    StackTracer.new(stack).trace
+  end
+
   class RackApplication
+    attr_accessor :application
+
     def initialize(application)
       @application = application
     end
@@ -100,9 +114,12 @@ class RackStack
   end
 
   class RackMap
+    attr_accessor :path, :rack_stack
+
     def initialize(path, &block)
       @path = path
-      @rack_stack = RackStack.new(&block)
+      @rack_stack = RackStack.new
+      @rack_stack.instance_eval(&block) # NOTE: if arity, outer_env ... handle?
     end
 
     def matches?(env)
@@ -143,6 +160,42 @@ class RackStack
       else
         raise "Couldn't find a matching application for request #{Rack::Request.new(@env).url}.  Stack: \n#{@stack_level} #{@stack.inspect}"
       end
+    end
+  end
+
+  class StackTracer
+    def initialize(stack)
+      @stack = stack
+    end
+
+    def trace
+      @input = StringIO.new
+      @stack.each { |app| trace_app(app) }
+      @input.string
+    end
+
+    private
+
+    def trace_app(app)
+      case app
+      when RackMiddleware  then trace_middleware(app)
+      when RackMap         then trace_map(app)
+      when RackApplication then trace_application(app)
+      end
+    end
+
+    def trace_middleware(app)
+      @input << "\nuse #{app.middleware_class}, #{app.arguments.inspect}, &#{app.block.inspect}"
+    end
+    
+    def trace_map(app)
+      @input << "\nmap #{app.path.inspect} do"
+      @input << StackTracer.new(app.rack_stack.stack).trace.gsub(/^/, "  ") # TODO share input?
+      @input << "\nend"
+    end
+
+    def trace_application(app)
+      @input << "\nrun #{app.application}"
     end
   end
 

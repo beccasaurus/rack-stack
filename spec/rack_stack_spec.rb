@@ -10,16 +10,10 @@ describe RackStack do
     Rack::Lint.new @app
   end
 
-  def hello_world_app
-    lambda do |env|
-      response = Rack::Response.new
-      response.write "Hello World"
-      response.finish
-    end
-  end
-
   it "is a Rack application" do
-    @app = RackStack.new {|o| o.run hello_world_app }
+    @app = RackStack.new do
+      run lambda {|e| [200, {"Content-Type" => "text/plain"}, ["Hello World"]] }
+    end
 
     get "/"
 
