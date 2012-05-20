@@ -52,7 +52,7 @@ class RackStack
   end
 
   def call(env)
-    sort_stack!
+    sort_stack! # instead, insert apps into stack where we want via #use/#map/#run ? DEF remove this from every #call.
     StackResponder.new(stack, @default_app, env).finish
   end
 
@@ -65,8 +65,8 @@ class RackStack
     @stack << RackMap.new(path, @default_app, &block)
   end
 
-  def run(application)
-    @stack << RackApplication.new(application)
+  def run(application, options = nil)
+    @stack << RackApplication.new(application, options)
   end
 
   def trace
@@ -83,10 +83,14 @@ class RackStack
   end
 
   class RackApplication
-    attr_accessor :application
+    attr_accessor :application, :if_condition, :unless_condition
 
-    def initialize(application)
+    def initialize(application, options = nil)
       @application = application
+      if options
+        @if_condition = options[:if]
+        @unless_condition = options[:unless]
+      end
     end
 
     def call(env)
@@ -94,7 +98,27 @@ class RackStack
     end
 
     def matches?(env)
-      true
+      if @if_condition
+        evaluate_condition(env, @if_condition)
+      elsif @unless_condition
+        ! evaluate_condition(env, @unless_condition)
+      else
+        true
+      end
+    end
+
+    def evaluate_condition(env, condition)
+      request = Rack::Request.new(env)
+
+      if condition.is_a? Proc
+        if condition.arity <= 0
+          !! request.instance_eval(&condition)
+        else
+          !! condition.call(request)
+        end
+      else
+        raise "Unknown condition type: #{condition.inspect}"
+      end
     end
   end
 

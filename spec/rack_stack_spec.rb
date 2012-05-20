@@ -104,6 +104,7 @@ describe RackStack do
     end
   end
   
+  # NOTE TODO Once this passes, I think it would be OK to start busting out some unit tests
   it "can #run application :if => lambda { true }" do
     @app = RackStack.new do
       run simple_app { write "Hi from FOO" }, :if => lambda { path_info =~ /foo/ }
@@ -116,11 +117,35 @@ describe RackStack do
     get("/bar").body.should == "Hi from BAR"
   end
 
-  it "can #run application :if => lambda {|request| true }"
+  it "can #run application :if => lambda {|request| true }" do
+    @app = RackStack.new do
+      run simple_app { write "Hi from FOO" }, :if => lambda {|request| request.path_info =~ /foo/ }
+      run simple_app { write "Hi from BAR" }, :if => lambda {|request| request.path_info =~ /bar/ }
+      run simple_app { write "Catch all" }
+    end
+
+    get("/").body.should == "Catch all"
+    get("/foo").body.should == "Hi from FOO"
+    get("/bar").body.should == "Hi from BAR"
+  end
 
   it "can #run application :if => { <Rack::Request attribute> => <Rack::Request value> }"
   it "can #run application :if => { <Rack::Request attribute> => { <nested method call> => <value> } }"
-  it "can #run application :unless => proc(Rack::Request)"
+
+  it "can #run application :unless => lambda { true }" do
+    @app = RackStack.new do
+      run simple_app { write "Not BAR!" }, :unless => lambda { path_info == "/" || path_info =~ /bar/ }
+      run simple_app { write "Not FOO!" }, :unless => lambda { path_info == "/" || path_info =~ /foo/ }
+      run simple_app { write "Catch all" }
+    end
+
+    get("/").body.should == "Catch all"
+    get("/foo").body.should == "Not BAR!"
+    get("/bar").body.should == "Not FOO!"
+  end
+
+  it "can #run application :unless => lambda {|request| true }"
+
   it "can #run application :unless => { <Rack::Request attribute> => <Rack::Request value> }"
   it "can #run application :unless => { <Rack::Request attribute> => { <nested method call> => <value> } }"
   it "can add named application"
