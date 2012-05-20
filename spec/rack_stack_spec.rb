@@ -5,6 +5,15 @@ require "rack/test"
 describe RackStack do
   include Rack::Test::Methods
 
+  def simple_app(&block)
+    lambda {|env|
+      request  = Rack::Request.new(env)
+      response = Rack::Response.new
+      block.call(request, response) if block
+      response.finish
+    }
+  end
+
   def app
     fail "You forgot to set an @app!" unless @app
     Rack::Lint.new @app
@@ -21,16 +30,21 @@ describe RackStack do
   end
 
   it "is a Rack middleware" do
-    @app = Rack::Builder.new do
+    @app = Rack::Builder.new {
+
       use RackStack do
-        run lambda {|e| [200, {"Content-Type" => "text/plain"}, ["Rack Stack"]] }
+        map "/rack-stack" do
+          run lambda {|e| [200, {"Content-Type" => "text/plain"}, ["Rack Stack"]] }
+        end
       end
-      run lambda {|e| [200, {"Content-Type" => "text/plain"}, ["Rack Builder"]] }
-    end
 
-    get "/"
+      run lambda {|e| [200, {"Content-Type" => "text/plain"}, ["rack builder"]] }
 
-    last_response.body.should == "Rack Stack"
+    }.to_app
+
+    get("/").body.should == "rack builder"
+
+    get("/rack-stack").body.should == "Rack Stack"
   end
 
   it "calls #default_app (or returns nil) if no application"
