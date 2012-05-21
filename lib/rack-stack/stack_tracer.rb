@@ -1,5 +1,8 @@
 class RackStack
+
+  # ...
   class StackTracer
+
     def initialize(stack)
       @stack = stack
     end
@@ -21,7 +24,9 @@ class RackStack
     end
 
     def trace_middleware(app)
-      @input << "use #{app.middleware_class}"
+      @input << "use"
+      @input << " #{app.name.inspect}," if app.name
+      @input << " #{app.middleware_class}"
       @input << ", #{app.arguments.map(&:inspect).join(', ')}" if app.arguments.any?
       @input << ", &#{app.block}" if app.block
       @input << ", when: #{app.request_matchers.map(&:matcher).inspect}" if app.request_matchers.any?
@@ -35,7 +40,9 @@ class RackStack
     end
 
     def trace_application(app)
-      @input << "run #{app.application}"
+      @input << "run"
+      @input << " #{app.name.inspect}," if app.name
+      @input << " #{app.application}"
       @input << ", when: #{app.request_matchers.map(&:matcher).inspect}" if app.request_matchers.any?
       @input << "\n"
     end

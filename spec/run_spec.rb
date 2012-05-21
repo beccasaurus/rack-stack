@@ -20,61 +20,46 @@ describe RackStack, "#run" do
   it "@app" do
     @app.run @hello_app
 
-    get("/foo/bar").body.should == "Hello from /foo/bar"
-
     @app.trace.should == clean_trace("run SimpleApp<hello>")
+
+    get("/foo/bar").body.should == "Hello from /foo/bar"
   end
 
   it "@app, :when => <RequestMatcher>" do
     @app.run @hello_app,   :when => { :path_info => /hello/   }
     @app.run @goodbye_app, :when => { :path_info => /goodbye/ }
 
+    @app.trace.should == clean_trace(%{
+      run SimpleApp<hello>, when: [{:path_info=>/hello/}]
+      run SimpleApp<goodbye>, when: [{:path_info=>/goodbye/}]
+    })
+
     get("/hello/foo").body.should == "Hello from /hello/foo"
     get("/goodbye/foo").body.should == "Goodbye from /goodbye/foo"
-
-    pending "This fails.  Need to write specs for StackTracer."
-
-    @app.trace.should == clean_trace(%[
-      run SimpleApp<hello>, :when => { :path => /hello/ }
-      run SimpleApp<goodbye>, :when => { :path => /goodbye/ }
-    ])
   end
-
-  # These are the assertions that I had to double-check the unit-level sanity 
-  # of everything (after asserting that the acceptance level test passed).
-  #
-  # Experimenting with replacing these with testing against the stacktrace, which 
-  # is more visual and potentially easier to understand/maintain (even though it 
-  # may be somewhat annoying to work with a big string).
-  #
-  # @app.stack.length.should == 2
-  # @app.stack[0].should be_an_instance_of RackStack::RackApplication
-  # @app.stack[0].application.should == @hello_app
-  # @app.stack[0].request_matchers.length.should == 1
-  # @app.stack[0].request_matchers.first.matcher.should == hello_matcher
-  # @app.stack[1].should be_an_instance_of RackStack::RackApplication
-  # @app.stack[1].application.should == @goodbye_app
-  # @app.stack[1].request_matchers.length.should == 1
-  # @app.stack[1].request_matchers.first.matcher.should == goodbye_matcher
 
   it ":app_name, @app" do
     @app.run :app_name, @hello_app
 
-    get("/").body.should == "Hello from /"
+    @app.trace.should == "run :app_name, SimpleApp<hello>\n"
 
-    @app.stack.length.should == 1
-    @app.stack.first.name.should == :app_name
-    @app.stack.first.should be_an_instance_of RackStack::RackApplication
-    @app.stack.first.application.should == @hello_app
-    @app[:app_name].should == @hello_app
-    @app.app_name.should == @hello_app
-    @app.respond_to?(:app_name).should be_true
+    get("/").body.should == "Hello from /"
 
     @app.remove :app_name
     @app.stack.length.should == 0
     expect { get("/") }.to raise_error(RackStack::NoMatchingApplicationError)
   end
 
-  it ":app_name, @app, :when => <RequestMatcher>"
+  it ":app_name, @app, :when => <RequestMatcher>" do
+    @app.run :app_name, @hello_app, :when => { :path_info => /.*/ }
+
+    @app.trace.should == "run :app_name, SimpleApp<hello>, when: [{:path_info=>/.*/}]\n"
+
+    get("/").body.should == "Hello from /"
+
+    @app.remove :app_name
+    @app.stack.length.should == 0
+    expect { get("/") }.to raise_error(RackStack::NoMatchingApplicationError)
+  end
 
 end
