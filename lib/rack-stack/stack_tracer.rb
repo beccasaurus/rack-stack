@@ -21,7 +21,11 @@ class RackStack
     end
 
     def trace_middleware(app)
-      @input << "use #{app.middleware_class}, #{app.arguments.inspect}, &#{app.block.inspect}\n"
+      @input << "use #{app.middleware_class}"
+      @input << ", #{app.arguments.map(&:inspect).join(', ')}" if app.arguments.any?
+      @input << ", &#{app.block}" if app.block
+      @input << ", when: #{app.request_matchers.map(&:matcher).inspect}" if app.request_matchers.any?
+      @input << "\n"
     end
     
     def trace_map(app)
@@ -31,7 +35,9 @@ class RackStack
     end
 
     def trace_application(app)
-      @input << "run #{app.application}\n"
+      @input << "run #{app.application}"
+      @input << ", when: #{app.request_matchers.map(&:matcher).inspect}" if app.request_matchers.any?
+      @input << "\n"
     end
   end
 end

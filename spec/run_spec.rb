@@ -22,10 +22,7 @@ describe RackStack, "#run" do
 
     get("/foo/bar").body.should == "Hello from /foo/bar"
 
-    @app.stack.length.should == 1
-    @app.stack[0].should be_an_instance_of RackStack::RackApplication
-    @app.stack[0].application.should == @hello_app
-    @app.stack[0].request_matchers.should be_empty
+    @app.trace.should == clean_trace("run SimpleApp<hello>")
   end
 
   it "@app, :when => <RequestMatcher>" do
