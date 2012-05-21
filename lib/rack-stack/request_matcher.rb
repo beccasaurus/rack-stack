@@ -1,8 +1,10 @@
 class RackStack
 
   class RequestMatcher
+    attr_accessor :matcher
+
     def initialize(matcher)
-      @matcher = matcher
+      self.matcher = matcher
     end
 
     def result(env)

@@ -65,6 +65,10 @@ class RackStack
     self
   end
 
+  def remove(name)
+    @stack.reject! {|app| name == app.name }
+  end
+
   # Rack::Builder: call(env)
   def call(env)
     sort_stack! # instead, insert apps into stack where we want via #use/#map/#run ? DEF remove this from every #call.
@@ -83,8 +87,30 @@ class RackStack
   end
 
   # Rack::Builder: run(app)
-  def run(application, options = nil)
-    @stack << RackApplication.new(application, options)
+  #def run(application, options = nil)
+  def run(*args)
+    name = args.shift if args.first.is_a?(Symbol)
+    application = args.shift
+    options = args.shift
+
+    app = RackApplication.new(application, options)
+    app.name = name
+    @stack << app
+  end
+
+  def [](name)
+    if app = @stack.detect {|app| name == app.name }
+      app.application
+    end
+  end
+
+  def method_missing(name, *args, &block)
+    app = self[name] if args.empty? && block.nil?
+    app || super
+  end
+
+  def respond_to?(name)
+    !! self[name]
   end
 
   def trace
