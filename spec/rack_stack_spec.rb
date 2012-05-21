@@ -105,10 +105,10 @@ describe RackStack do
   end
   
   # NOTE TODO Once this passes, I think it would be OK to start busting out some unit tests
-  it "can #run application :if => lambda { true }" do
+  it "can #run application :when => lambda { true }" do
     @app = RackStack.new do
-      run simple_app { write "Hi from FOO" }, :if => lambda { path_info =~ /foo/ }
-      run simple_app { write "Hi from BAR" }, :if => lambda { path_info =~ /bar/ }
+      run simple_app { write "Hi from FOO" }, :when => lambda { path_info =~ /foo/ }
+      run simple_app { write "Hi from BAR" }, :when => lambda { path_info =~ /bar/ }
       run simple_app { write "Catch all" }
     end
 
@@ -117,10 +117,10 @@ describe RackStack do
     get("/bar").body.should == "Hi from BAR"
   end
 
-  it "can #run application :if => lambda {|request| true }" do
+  it "can #run application :when => lambda {|request| true }" do
     @app = RackStack.new do
-      run simple_app { write "Hi from FOO" }, :if => lambda {|request| request.path_info =~ /foo/ }
-      run simple_app { write "Hi from BAR" }, :if => lambda {|request| request.path_info =~ /bar/ }
+      run simple_app { write "Hi from FOO" }, :when => lambda {|request| request.path_info =~ /foo/ }
+      run simple_app { write "Hi from BAR" }, :when => lambda {|request| request.path_info =~ /bar/ }
       run simple_app { write "Catch all" }
     end
 
@@ -129,36 +129,18 @@ describe RackStack do
     get("/bar").body.should == "Hi from BAR"
   end
 
-  it "can #run application :if => { <Rack::Request attribute> => <Rack::Request value> }"
-  it "can #run application :if => { <Rack::Request attribute> => { <nested method call> => <value> } }"
+  it "can #run application :when => { <Rack::Request attribute> => <Rack::Request value> }"
+  it "can #run application :when => { <Rack::Request attribute> => { <nested method call> => <value> } }"
 
-  it "can #run application :unless => lambda { true }" do
-    @app = RackStack.new do
-      run simple_app { write "Not BAR!" }, :unless => lambda { path_info == "/" || path_info =~ /bar/ }
-      run simple_app { write "Not FOO!" }, :unless => lambda { path_info == "/" || path_info =~ /foo/ }
-      run simple_app { write "Catch all" }
-    end
-
-    get("/").body.should == "Catch all"
-    get("/foo").body.should == "Not BAR!"
-    get("/bar").body.should == "Not FOO!"
-  end
-
-  it "can #run application :unless => lambda {|request| true }"
-
-  it "can #run application :unless => { <Rack::Request attribute> => <Rack::Request value> }"
-  it "can #run application :unless => { <Rack::Request attribute> => { <nested method call> => <value> } }"
   it "can add named application"
   it "can remove named application"
 
   it "can #use middleware"
   it "can #use middleware with arguments and block"
-  it "can #use middleware :if => proc(Rack::Request)"
-  it "can #use middleware :if => { <Rack::Request attribute> => <Rack::Request value> }"
-  it "can #use middleware :unless => proc(Rack::Request)"
-  it "can #use middleware :unless => { <Rack::Request attribute> => <Rack::Request value> }"
+  it "can #use middleware :when => proc(Rack::Request)"
+  it "can #use middleware :when => { <Rack::Request attribute> => <Rack::Request value> }"
   it "can add named middleware"
   it "can remove named middleware"
-  it "can #use middleware even with :if/:unless/[etc] argument clashing edge cases"
+  it "can #use middleware even with :when argument clashing edge cases"
 
 end

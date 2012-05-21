@@ -1,20 +1,31 @@
 require "spec_helper"
 
 class RackStack
-
-  # request_matchers << RequestMatcher.new(options[:if])
-  # request_matchers << RequestMatcher.new(options[:unless], :negate => true)
   describe RequestMatcher do
 
-    describe "#result(env)" do
-      it "returns true when condition matches"
-      it "returns false when condition doens't match"
-
-      context "when negate is set to true" do
-        it "returns false when condition matches"
-        it "returns true when condition doesn't match"
-      end
+    def env_for(*args)
+      Rack::MockRequest.env_for(*args)
     end
 
+    it "when: -> { host =~ /twitter.com/ }" do
+      matcher = RequestMatcher.new lambda { host =~ /twitter.com/ }
+
+      matcher.result(env_for "http://www.twitter.com/").should be_true
+      matcher.result(env_for "http://www.different.com/").should be_false
+    end
+
+    it "when: ->(request) { request.host =~ /twitter.com/ }" do
+      matcher = RequestMatcher.new lambda {|request| request.host =~ /twitter.com/ }
+
+      matcher.result(env_for "http://www.twitter.com/").should be_true
+      matcher.result(env_for "http://www.different.com/").should be_false
+    end
+
+    it "when: { host: /twitter.com/ }" do
+      matcher = RequestMatcher.new :host => /twitter.com/
+
+      matcher.result(env_for "http://www.twitter.com/").should be_true
+      matcher.result(env_for "http://www.different.com/").should be_false
+    end
   end
 end
