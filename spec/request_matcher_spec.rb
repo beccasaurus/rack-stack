@@ -27,5 +27,6 @@ class RackStack
       matcher.result(env_for "http://www.twitter.com/").should be_true
       matcher.result(env_for "http://www.different.com/").should be_false
     end
+
   end
 end

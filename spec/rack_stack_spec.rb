@@ -1,6 +1,6 @@
 require "spec_helper"
 
-# Will break into smaller and/or more meaningful specs later ...
+# TODO Clean up this spec (this was the first spec).  Will clean it up soon ...
 describe RackStack do
   include Rack::Test::Methods
 

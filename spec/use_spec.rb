@@ -23,4 +23,5 @@ describe RackStack, "#use" do
 
   it ":middleware_name, MiddlewareClass"
   it ":middleware_name, MiddlewareClass, *arguments, :arg1 => true, :when => <RequestMatcher>, &block"
+
 end
