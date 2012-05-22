@@ -82,8 +82,8 @@ class RackStack
 
   # Rack::Builder: map(path, &block)
   # TODO add test for "map '/' do |outer_env|" to make sure outer_env is available in block
-  def map(path, &block)
-    @stack << RackMap.new(path, @default_app, &block)
+  def map(path, options = nil, &block)
+    @stack << RackMap.new(path, @default_app, options, &block)
   end
 
   # Rack::Builder: run(app)

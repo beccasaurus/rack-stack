@@ -34,7 +34,9 @@ class RackStack
     end
     
     def trace_map(app)
-      @input << "map #{app.path.inspect} do\n"
+      @input << "map #{app.path.inspect}"
+      @input << ", when: #{app.request_matchers.map(&:matcher).inspect}" if app.request_matchers.any?
+      @input << " do\n"
       @input << StackTracer.new(app.rack_stack.stack).trace.gsub(/^/, "  ") # TODO share input?
       @input << "end\n"
     end
