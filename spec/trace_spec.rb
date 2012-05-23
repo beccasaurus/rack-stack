@@ -52,8 +52,8 @@ describe RackStack, "#trace" do
   end
 
   it "use MiddlewareClass, arg1, :arg2 => true, do ... end" do
-    @app.use MiddlewareToTrace, 123.45, ["hello", "world"], :some => :options, :foo => :bar, :when => { :host => /twitter.com/ } do end
-    @app.trace.start_with?("use MiddlewareToTrace, 123.45, [\"hello\", \"world\"], {:some=>:options, :foo=>:bar}, &#<Proc").should be_true
+    @app.use MiddlewareToTrace, 123.45, ["hello", "world"], :some => :options, :when => { :host => /twitter.com/ } do end
+    @app.trace.start_with?("use MiddlewareToTrace, 123.45, [\"hello\", \"world\"], {:some=>:options}, &#<Proc").should be_true
     @app.trace.end_with?(">, when: [{:host=>/twitter.com/}]\n").should be_true
   end
 
