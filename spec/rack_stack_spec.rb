@@ -44,6 +44,26 @@ describe RackStack do
     get("/rack-stack").body.should == "Rack Stack!"
   end
 
+  it "Rack::Builder only supports instance_eval-ing its block" do
+    @ivar_app = simple_app { write "Hi from @ivar app" }
+
+    @app = Rack::Builder.new {|o|
+      o.run @ivar_app || simple_app { write "@ivar was out of scope" }
+    }.to_app
+
+    get("/").body.should == "@ivar was out of scope"
+  end
+
+  it "can pass a block argument to constructor" do
+    @ivar_app = simple_app { write "Hi from @ivar app" }
+
+    @app = RackStack.new {|o|
+      o.run @ivar_app || simple_app { write "@ivar was out of scope" }
+    }.to_app
+
+    get("/").body.should == "Hi from @ivar app"
+  end
+
   it "calls #default_app (or raises exception) if no matching application found" do
     default_app = simple_app { write "Hello from Default App" }
 
