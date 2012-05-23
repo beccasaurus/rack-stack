@@ -1,10 +1,10 @@
 require "rspec/core/rake_task"
 
 desc 'Default: run specs'
-task :default => :spec
+task :default => [:spec, :test_rack_builder_compatibility]
 
 desc 'Run tests'
-task :test => :spec
+task :test => [:spec, :test_rack_builder_compatibility]
 
 desc "Run specs"
 RSpec::Core::RakeTask.new
