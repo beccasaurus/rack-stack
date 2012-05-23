@@ -11,15 +11,21 @@ class RackStack
     end
 
     def matches?(env)
-      path_matches?(env) && super
-    end
-
-    def path_matches?(env)
-      path == $1 if env["PATH_INFO"] =~ %r{^(/[^/]*)}
+      !! get_match(env) && super
     end
 
     def call(env)
+      match = get_match(env)
+
+      env["SCRIPT_NAME"] = env["SCRIPT_NAME"] + path
+      env["PATH_INFO"] = match[1]
+
       rack_stack.call(env)
+    end
+
+    def get_match(env)
+      pattern = Regexp.new("^#{Regexp.quote(path.chomp("/")).gsub('/', '/+')}(.*)", nil, 'n')
+      pattern.match env["PATH_INFO"]
     end
   end
 end

@@ -41,8 +41,8 @@ class RackStack
   def sort_stack!
     @stack = @stack.sort_by do |layer|
       if layer.is_a?(RackMap)
-        # Don't need to do it like this but, REMINDER, URLMap tries to match the longest paths first, so we should do the same to be compatible!
-        [[RackMiddleware, RackMap, RackApplication].index(layer.class), layer.path.length]
+        # URLMap tries to match the longest paths first, so we should do the same to be compatible!
+        [[RackMiddleware, RackMap, RackApplication].index(layer.class), -layer.path.length]
       else
         [[RackMiddleware, RackMap, RackApplication].index(layer.class), 0]
       end

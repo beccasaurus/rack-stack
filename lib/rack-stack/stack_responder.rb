@@ -29,7 +29,11 @@ class RackStack
       elsif @default_app
         @default_app.call(@env)
       else
-        raise NoMatchingApplicationError.new(:stack => @stack, :env => @env)
+        if @stack.any? {|app| app.is_a? RackMap }
+          [404, {"Content-Type" => "text/html"}, []]
+        else
+          raise NoMatchingApplicationError.new(:stack => @stack, :env => @env)
+        end
       end
     end
   end
