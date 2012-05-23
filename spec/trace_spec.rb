@@ -2,18 +2,9 @@ require "spec_helper"
 
 describe RackStack, "#trace" do
 
-  class ExampleMiddlewareClass
-    def initialize(app)
-      @app = app
-    end
-    def call(env)
-      @app.call(env)
-    end
-  end
-
-  def clean_trace(trace, options = {})
-    options[:indent] ||= 6
-    trace.gsub(/^ {#{options[:indent]}}/, "").strip + "\n"
+  class MiddlewareToTrace
+    def initialize(app) end
+    def call(env) end
   end
 
   before do
@@ -36,33 +27,33 @@ describe RackStack, "#trace" do
   end
 
   it "use MiddlewareClass" do
-    @app.use ExampleMiddlewareClass
-    @app.trace.should == "use ExampleMiddlewareClass\n"
+    @app.use MiddlewareToTrace
+    @app.trace.should == "use MiddlewareToTrace\n"
   end
 
   it "use MiddlewareClass, arg1, :some => 'options'" do
-    @app.use(ExampleMiddlewareClass, 123.45, :some => :options){ }
-    @app.trace.start_with?("use ExampleMiddlewareClass, 123.45, {:some=>:options}, &#<Proc:").should be_true
+    @app.use(MiddlewareToTrace, 123.45, :some => :options){ }
+    @app.trace.start_with?("use MiddlewareToTrace, 123.45, {:some=>:options}, &#<Proc:").should be_true
   end
 
   it "use MiddlewareClass && run @app" do
-    @app.use ExampleMiddlewareClass
+    @app.use MiddlewareToTrace
     @app.run @example_app
-    @app.trace.should == "use ExampleMiddlewareClass\nrun SimpleApp<example_app>\n"
+    @app.trace.should == "use MiddlewareToTrace\nrun SimpleApp<example_app>\n"
   end
 
   it "use MiddlewareClass :when => {} && run @app :when => {}" do
     @app.run @example_app, :when => { :host => /twitter.com/ }
-    @app.use ExampleMiddlewareClass, :when => { :host => "www.foo.com" }
+    @app.use MiddlewareToTrace, :when => { :host => "www.foo.com" }
     @app.trace.should == clean_trace(%{
       run SimpleApp<example_app>, when: [{:host=>/twitter.com/}]
-      use ExampleMiddlewareClass, when: [{:host=>\"www.foo.com\"}]
+      use MiddlewareToTrace, when: [{:host=>\"www.foo.com\"}]
     })
   end
 
   it "use MiddlewareClass, arg1, :arg2 => true, do ... end" do
-    @app.use ExampleMiddlewareClass, 123.45, ["hello", "world"], :some => :options, :foo => :bar, :when => { :host => /twitter.com/ } do end
-    @app.trace.start_with?("use ExampleMiddlewareClass, 123.45, [\"hello\", \"world\"], {:some=>:options, :foo=>:bar}, &#<Proc").should be_true
+    @app.use MiddlewareToTrace, 123.45, ["hello", "world"], :some => :options, :foo => :bar, :when => { :host => /twitter.com/ } do end
+    @app.trace.start_with?("use MiddlewareToTrace, 123.45, [\"hello\", \"world\"], {:some=>:options, :foo=>:bar}, &#<Proc").should be_true
     @app.trace.end_with?(">, when: [{:host=>/twitter.com/}]\n").should be_true
   end
 

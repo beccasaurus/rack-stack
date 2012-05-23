@@ -7,10 +7,6 @@ describe RackStack, "#run" do
     Rack::Lint.new @app
   end
 
-  def clean_trace(trace)
-    trace.gsub(/^ {6}/, "").strip + "\n"
-  end
-
   before do
     @app         = RackStack.new
     @hello_app   = simple_app(:hello){|req,resp| resp.write "Hello from #{req.path_info}"   }

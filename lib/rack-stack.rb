@@ -76,12 +76,15 @@ class RackStack
   end
 
   # Rack::Builder: use(middleware, *args, &block)
-  def use(klass, *args, &block)
-    @stack << RackMiddleware.new(klass, *args, &block)
+  def use(*args, &block)
+    name = args.shift if args.first.is_a?(Symbol)
+    klass = args.shift
+    middleware = RackMiddleware.new(klass, *args, &block)
+    middleware.name = name
+    @stack << middleware
   end
 
   # Rack::Builder: map(path, &block)
-  # TODO add test for "map '/' do |outer_env|" to make sure outer_env is available in block
   def map(path, options = nil, &block)
     @stack << RackMap.new(path, @default_app, options, &block)
   end

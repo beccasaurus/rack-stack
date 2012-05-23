@@ -2,6 +2,11 @@ require "rspec"
 require "rack-stack"
 require "rack/test"
 
+def clean_trace(trace, options = {})
+  options[:indent] ||= 6
+  trace.gsub(/^ {#{options[:indent]}}/, "").strip + "\n"
+end
+
 # Helper for building little Rack applications.
 #
 #   simple_app { write "Hello" }
