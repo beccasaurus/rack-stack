@@ -1,6 +1,7 @@
 #! /bin/sh
 mkdir -p ./builder
 curl -o ./rack_builder_spec.rb https://raw.github.com/rack/rack/master/test/spec_builder.rb
+curl -o ./rack_urlmap_spec.rb https://raw.github.com/rack/rack/master/test/spec_urlmap.rb
 curl -o ./builder/anything.rb https://raw.github.com/rack/rack/master/test/builder/anything.rb
 curl -o ./builder/comment.ru https://raw.github.com/rack/rack/master/test/builder/comment.ru
 curl -o ./builder/end.ru https://raw.github.com/rack/rack/master/test/builder/end.ru
