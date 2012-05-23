@@ -26,7 +26,7 @@ describe RackStack, "#use" do
       body_parts.each {|part| body << part }
       body = "#{text}#{body}#{text}"
       headers["Content-Length"] = body.length.to_s
-      [status, headers, body]
+      [status, headers, [body]]
     end
   end
 

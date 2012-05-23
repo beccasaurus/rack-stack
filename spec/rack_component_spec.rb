@@ -23,7 +23,7 @@ class RackStack
       component.matches?(env_for "http://anything.com").should be_false
       component.matches?(env_for "http://twitter.com").should be_true
 
-      component.request_matchers << RequestMatcher.new(lambda { request_method == "POST" })
+      component.request_matchers << RequestMatcher.new(proc { request_method == "POST" })
       component.matches?(env_for "http://twitter.com").should be_false
       component.matches?(env_for "http://twitter.com", :method => :post).should be_true
     end

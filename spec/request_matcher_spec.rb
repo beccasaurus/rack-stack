@@ -8,7 +8,7 @@ class RackStack
     end
 
     it "when: -> { host =~ /twitter.com/ }" do
-      matcher = RequestMatcher.new lambda { host =~ /twitter.com/ }
+      matcher = RequestMatcher.new(proc { host =~ /twitter.com/ })
 
       matcher.result(env_for "http://www.twitter.com/").should be_true
       matcher.result(env_for "http://www.different.com/").should be_false
