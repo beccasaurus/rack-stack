@@ -37,8 +37,8 @@ Rack::Builder.new {
 
   # RackStack can be used as a middleware, alongside your existing Rack components
   use RackStack.new do
-    use AnotherMiddleware, when: { path_info: /foo/ }
-    run SomeApplication.new, when: { path_info: /bar/ }
+    use AnotherMiddleware
+    run SomeApplication.new
   end
 
   # Or RackStack can be used as a Rack endpoint.

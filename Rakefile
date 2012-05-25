@@ -1,15 +1,18 @@
-require "rspec/core/rake_task"
-
-desc 'Default: run specs'
-task :default => [:spec, :test_rack_builder_compatibility]
-
-desc 'Run tests'
-task :test => [:spec, :test_rack_builder_compatibility]
+desc 'Default: spec'
+task :default => [:spec]
 
 desc "Run specs"
-RSpec::Core::RakeTask.new
+task :spec => [:spec_rack_stack, :spec_rack_builder_compatibility]
 
-desc "Test Rack::Builder compatibility"
-task :test_rack_builder_compatibility do
-  sh "bundle exec ruby -Ilib rack-builder-compatibility/rack_builder_compatibility_spec.rb"
+desc 'Run tests (alias for spec)'
+task :test => [:spec]
+
+desc "Run RackStack test suite"
+task :spec_rack_stack do
+  sh "bundle exec rspec -Ispec/rack-stack-specs/ --color --format documentation --backtrace spec/rack-stack-specs/"
+end
+
+desc "Run Rack::Builder compatibility test suite"
+task :spec_rack_builder_compatibility do
+  sh "bundle exec ruby -Ilib spec/rack-builder-compatibility/rack_builder_compatibility_spec.rb"
 end
