@@ -53,12 +53,14 @@ class SimpleApp
   def call(env)
     request  = Rack::Request.new(env)
     response = Rack::Response.new
-    if @block.arity <= 0
-      response.instance_eval(&@block)
-    elsif @block.arity == 1
-      @block.call(response)
-    else
-      @block.call(request, response)
+    if @block
+      if @block.arity <= 0
+        response.instance_eval(&@block)
+      elsif @block.arity == 1
+        @block.call(response)
+      else
+        @block.call(request, response)
+      end
     end
     response.finish
   end

@@ -82,9 +82,7 @@ describe RackStack do
 
   it "raises RackStack::NoMatchingApplicationError (with the RackStack and a stack trace)" do
     @app = RackStack.new do
-      map "/this-wont-match" do
-        run simple_app { write "This won't match" }
-      end
+      run simple_app, :when => { :path_info => /this won't match any paths we request/ }
     end
   
     begin
