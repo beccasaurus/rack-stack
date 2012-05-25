@@ -5,7 +5,7 @@ class RackStack
   end
 
   def self.parse_file(file_path)
-    return load_from(file_path), :debug => true # for Rack::Builder specs
+    return load_from(file_path), :debug => true # XXX for Rack::Builder compatibility spec
   end
 
   def self.load_from(file_path)
@@ -17,6 +17,28 @@ class RackStack
       require file_path
       Object.const_get File.basename(file_path, ".rb").capitalize
     end
+  end
+
+  def self.use(*args, &block)
+    name = args.shift if args.first.is_a?(Symbol)
+    klass = args.shift
+    middleware = RackMiddleware.new(klass, *args, &block)
+    middleware.name = name
+    middleware
+  end
+
+  def self.run(*args)
+    name = args.shift if args.first.is_a?(Symbol)
+    application = args.shift
+    options = args.shift
+
+    app = RackApplication.new(application, options)
+    app.name = name
+    app
+  end
+
+  def self.map(path, options = nil, &block)
+    RackMap.new(path, @default_app, options, &block)
   end
 
   attr_accessor :stack
@@ -37,16 +59,8 @@ class RackStack
     end
   end
 
-  # TODO deprecate this or ... (?) ... once everything is happy and working
-  def sort_stack!
-    @stack = @stack.sort_by do |layer|
-      if layer.is_a?(RackMap)
-        # URLMap tries to match the longest paths first, so we should do the same to be compatible!
-        [[RackMiddleware, RackMap, RackApplication].index(layer.class), -layer.location.length]
-      else
-        [[RackMiddleware, RackMap, RackApplication].index(layer.class), 0]
-      end
-    end
+  def call(env)
+    StackResponder.new(stack, @default_app, env).finish
   end
 
   def to_app
@@ -54,46 +68,33 @@ class RackStack
     self
   end
 
-  def remove(name)
-    @stack.reject! {|app| name == app.name }
-  end
-
-  # Rack::Builder: call(env)
-  def call(env)
-    sort_stack! # instead, insert apps into stack where we want via #use/#map/#run ? DEF remove this from every #call.
-    StackResponder.new(stack, @default_app, env).finish
-  end
-
-  # Rack::Builder: use(middleware, *args, &block)
   def use(*args, &block)
-    name = args.shift if args.first.is_a?(Symbol)
-    klass = args.shift
-    middleware = RackMiddleware.new(klass, *args, &block)
-    middleware.name = name
-    @stack << middleware
+    @stack << self.class.use(*args, &block)
+    stack_updated!
   end
 
-  # Rack::Builder: map(path, &block)
-  def map(path, options = nil, &block)
-    @stack << RackMap.new(path, @default_app, options, &block)
+  def map(*args, &block)
+    @stack << self.class.map(*args, &block)
+    stack_updated!
   end
 
-  # Rack::Builder: run(app)
-  #def run(application, options = nil)
   def run(*args)
-    name = args.shift if args.first.is_a?(Symbol)
-    application = args.shift
-    options = args.shift
-
-    app = RackApplication.new(application, options)
-    app.name = name
-    @stack << app
+    @stack << self.class.run(*args)
+    stack_updated!
   end
 
   def [](name)
     if app = @stack.detect {|app| name == app.name }
       app.application
     end
+  end
+
+  def remove(name)
+    @stack.reject! {|app| name == app.name }
+  end
+
+  def stack_updated!
+    sort_stack!
   end
 
   def method_missing(name, *args, &block)
@@ -107,5 +108,19 @@ class RackStack
 
   def trace
     StackTracer.new(stack).trace
+  end
+
+  private
+
+  def sort_stack!
+    @stack = @stack.sort_by do |layer|
+      # We assume a certain stack order.  #use, #map, #run
+      class_value = [RackMiddleware, RackMap, RackApplication].index(layer.class)
+
+      # We order every #map by the length of its location (longest first)
+      map_location_value = layer.is_a?(RackMap) ? (-layer.location.length) : 0
+
+      [class_value, map_location_value]
+    end
   end
 end

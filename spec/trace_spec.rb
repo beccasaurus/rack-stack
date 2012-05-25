@@ -46,8 +46,8 @@ describe RackStack, "#trace" do
     @app.run @example_app, :when => { :host => /twitter.com/ }
     @app.use MiddlewareToTrace, :when => { :host => "www.foo.com" }
     @app.trace.should == clean_trace(%{
-      run SimpleApp<example_app>, when: [{:host=>/twitter.com/}]
       use MiddlewareToTrace, when: [{:host=>\"www.foo.com\"}]
+      run SimpleApp<example_app>, when: [{:host=>/twitter.com/}]
     })
   end
 

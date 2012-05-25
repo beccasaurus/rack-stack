@@ -40,11 +40,11 @@ describe RackStack, "#map" do
 
     @app.trace.should == clean_trace(%{
       use ResponseWrapperMiddleware
-      run SimpleApp<default>
       map "/foo" do
         use ResponseWrapperMiddleware, "[foo]"
         run SimpleApp<foo>
       end
+      run SimpleApp<default>
     })
 
     get("/").body.should == "*default*"
