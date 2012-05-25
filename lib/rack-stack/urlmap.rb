@@ -1,5 +1,8 @@
 class RackStack
-  class RackMap < RackComponent
+
+  # @api private
+  # Represents a Rack URLMap (eg. added via #map)
+  class URLMap < Application
     attr_accessor :location, :rack_stack
 
     def initialize(name, location, options = nil, &block)

@@ -1,5 +1,8 @@
 class RackStack
-  class RackMiddleware < RackComponent
+
+  # @api private
+  # Represents a Rack middleware (eg. added via #use)
+  class Middleware < Application
     attr_accessor :middleware_class, :arguments, :block
 
     def initialize(name, middleware_class, *arguments, &block)

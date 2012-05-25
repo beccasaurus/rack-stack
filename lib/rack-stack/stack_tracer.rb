@@ -18,9 +18,9 @@ class RackStack
 
     def trace_app(app)
       case app
-      when RackMiddleware  then trace_middleware(app)
-      when RackMap         then trace_map(app)
-      when RackApplication then trace_application(app)
+      when Middleware  then trace_middleware(app)
+      when URLMap         then trace_map(app)
+      when Endpoint then trace_application(app)
       end
     end
 
@@ -42,7 +42,7 @@ class RackStack
         when Proc
           matcher.inspect.include?("rack-stack/lib/rack-stack")
         when Method
-          matcher.inspect.include?("RackStack::RackMap#path_matcher")
+          matcher.inspect.include?("RackStack::URLMap#path_matcher")
         end
       end
 

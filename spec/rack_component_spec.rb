@@ -1,21 +1,21 @@
 require "spec_helper"
 
 class RackStack
-  describe RackComponent do
+  describe Application do
 
     def env_for(*args)
       Rack::MockRequest.env_for(*args)
     end
 
     it "has a #name (optional)" do
-      component = RackComponent.new
+      component = Application.new
       component.name.should be_nil
       component.name = :usually_a_symbol
       component.name.should == :usually_a_symbol
     end
 
     it "has many #request_matchers (which determine #matches?(env))" do
-      component = RackComponent.new
+      component = Application.new
       component.request_matchers.should be_empty
       component.matches?(env_for "http://anything.com").should be_true
 

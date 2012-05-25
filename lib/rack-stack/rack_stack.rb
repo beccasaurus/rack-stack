@@ -1,3 +1,4 @@
+# Represents a stack of Rack applications, eg. middleware, endpoints, and maps
 class RackStack
 
   def self.app(default_app = nil, &block)
@@ -19,26 +20,33 @@ class RackStack
     end
   end
 
+  # Returns RackStack object representing a Rack middleware that can be added to the #stack
   def self.use(*args, &block)
     name = args.shift if args.first.is_a?(Symbol)
     klass = args.shift
-    RackMiddleware.new(name, klass, *args, &block)
+    Middleware.new(name, klass, *args, &block)
   end
 
+  # Returns RackStack object representing a Rack endpoint that can be added to the #stack
   def self.run(*args)
     name = args.shift if args.first.is_a?(Symbol)
     application = args.shift
     options = args.shift
-    RackApplication.new(name, application, options)
+    Endpoint.new(name, application, options)
   end
 
+  # Returns RackStack object representing a Rack URLMap that can be added to the #stack
   def self.map(*args, &block)
     name = args.shift if args.first.is_a?(Symbol)
     path = args.shift
     options = args.shift
-    RackMap.new(name, path, options, &block)
+    URLMap.new(name, path, options, &block)
   end
 
+  # Returns an Array of RackStack objects
+  # @see RackStack::use 
+  # @see RackStack::run
+  # @see RackStack::run
   attr_accessor :stack
 
   def initialize(default_app = nil, &block)
@@ -62,7 +70,7 @@ class RackStack
   end
 
   def to_app
-    fail "missing run or map statement" if stack.all? {|app| app.is_a? RackMiddleware }
+    fail "missing run or map statement" if stack.all? {|app| app.is_a? Middleware }
     self
   end
 
@@ -118,16 +126,16 @@ class RackStack
   def sort_stack!
     @stack = @stack.sort_by do |layer|
       # We assume a certain stack order.  #use, #map, #run
-      class_value = [RackMiddleware, RackMap, RackApplication].index(layer.class)
+      class_value = [Middleware, URLMap, Endpoint].index(layer.class)
 
       # We order every #map by the length of its location (longest first)
-      map_location_value = layer.is_a?(RackMap) ? (-layer.location.length) : 0
+      map_location_value = layer.is_a?(URLMap) ? (-layer.location.length) : 0
 
       [class_value, map_location_value]
     end
   end
 
   def nested_rack_stacks
-    @stack.select {|app| app.is_a? RackMap }.map {|map| map.rack_stack }
+    @stack.select {|app| app.is_a? URLMap }.map {|map| map.rack_stack }
   end
 end
