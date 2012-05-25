@@ -111,4 +111,51 @@ describe RackStack do
     end
   end
   
+  it "RackStack#remove removes components from nested maps" do
+    @app = RackStack.new do
+      map "/foo" do
+        map "/foo" do
+          run :name, simple_app(:inner_inner)
+        end
+        run :name, simple_app(:inner)
+      end
+      run :name, simple_app(:outer)
+    end
+
+    @app.trace.should == clean_trace(%{
+      map "/foo" do
+        map "/foo" do
+          run :name, SimpleApp<inner_inner>
+        end
+        run :name, SimpleApp<inner>
+      end
+      run :name, SimpleApp<outer>
+    })
+
+    @app.remove(:name)
+
+    @app.trace.should == clean_trace(%{
+      map "/foo" do
+        map "/foo" do
+          end
+      end
+    })
+  end
+
+  it "RackStack#[:name] looks in nested maps" do
+    @app = RackStack.new do
+      map "/outer" do
+        map "/inner" do
+          run :the_nested_app, simple_app(:the_nested_app)
+        end
+      end
+    end
+
+    @app[:the_nested_app].should be_a(SimpleApp)
+    @app[:the_nested_app].to_s.should == "SimpleApp<the_nested_app>"
+
+    # Double-check method_missing
+    @app.the_nested_app.should be_a(SimpleApp)
+    @app.the_nested_app.to_s.should == "SimpleApp<the_nested_app>"
+  end
 end

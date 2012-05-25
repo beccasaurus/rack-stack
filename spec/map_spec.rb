@@ -50,4 +50,29 @@ describe RackStack, "#map" do
     get("/").body.should == "*default*"
     get("/foo").body.should == "*[foo]foo[foo]*"
   end
+
+  it "can have a name" do
+    @app = RackStack.new do
+      map :first, "/foo" do
+        run simple_app(:first){ write "first" }
+      end
+      map :second, "/foo" do
+        run simple_app(:second){ write "second" }
+      end
+    end
+
+    @app.trace.should == clean_trace(%{
+      map :first, "/foo" do
+        run SimpleApp<first>
+      end
+      map :second, "/foo" do
+        run SimpleApp<second>
+      end
+    })
+
+    get("/foo").body.should == "first"
+
+    @app.remove :first
+    get("/foo").body.should == "second"
+  end
 end

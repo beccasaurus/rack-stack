@@ -2,7 +2,8 @@ class RackStack
   class RackMap < RackComponent
     attr_accessor :location, :rack_stack
 
-    def initialize(location, options = nil, &block)
+    def initialize(name, location, options = nil, &block)
+      self.name = name
       self.location = location
       self.rack_stack = RackStack.new(&block)
 

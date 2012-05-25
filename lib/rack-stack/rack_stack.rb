@@ -32,8 +32,11 @@ class RackStack
     RackApplication.new(name, application, options)
   end
 
-  def self.map(path, options = nil, &block)
-    RackMap.new(path, options, &block)
+  def self.map(*args, &block)
+    name = args.shift if args.first.is_a?(Symbol)
+    path = args.shift
+    options = args.shift
+    RackMap.new(name, path, options, &block)
   end
 
   attr_accessor :stack
@@ -80,12 +83,17 @@ class RackStack
 
   def [](name)
     if app = @stack.detect {|app| name == app.name }
-      app.application
+      return app.application
+    end
+
+    nested_rack_stacks.each do |rack_stack|
+      return app if app = rack_stack[name]
     end
   end
 
   def remove(name)
     @stack.reject! {|app| name == app.name }
+    nested_rack_stacks.each {|rack_stack| rack_stack.remove(name) }
   end
 
   def stack_updated!
@@ -117,5 +125,9 @@ class RackStack
 
       [class_value, map_location_value]
     end
+  end
+
+  def nested_rack_stacks
+    @stack.select {|app| app.is_a? RackMap }.map {|map| map.rack_stack }
   end
 end

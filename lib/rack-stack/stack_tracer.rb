@@ -46,7 +46,9 @@ class RackStack
         end
       end
 
-      @input << "map #{app.location.inspect}"
+      @input << "map"
+      @input << " #{app.name.inspect}," if app.name
+      @input << " #{app.location.inspect}"
       @input << ", when: #{matchers.inspect}" if matchers.any?
       @input << " do\n"
       @input << StackTracer.new(app.rack_stack.stack).trace.gsub(/^/, "  ") # TODO share input?
