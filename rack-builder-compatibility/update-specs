@@ -6,3 +6,7 @@ curl -o ./builder/anything.rb https://raw.github.com/rack/rack/master/test/build
 curl -o ./builder/comment.ru https://raw.github.com/rack/rack/master/test/builder/comment.ru
 curl -o ./builder/end.ru https://raw.github.com/rack/rack/master/test/builder/end.ru
 curl -o ./builder/options.ru https://raw.github.com/rack/rack/master/test/builder/options.ru
+
+# Comment out the |outer_env| because we prefer not to instance_eval when a block argument is given.
+# Instead, we #call the block (providing the RackBuilder instance) giving you scoping benefits over instance_eval.
+sed -i "s/|outer_env|/# |outer_env|/g" ./rack_builder_spec.rb

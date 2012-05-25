@@ -1,31 +1,42 @@
 class RackStack
   class RackMap < RackComponent
-    attr_accessor :path, :rack_stack
+    attr_accessor :location, :rack_stack
 
-    def initialize(path, default_app, options = nil, &block)
-      self.path = path
-      self.rack_stack = RackStack.new(default_app) # do we need ?
-      self.rack_stack.instance_eval(&block) # NOTE: if arity, outer_env ... handle?
+    def initialize(location, default_app, options = nil, &block)
+      self.location = location
+      self.rack_stack = RackStack.new(default_app, &block)
 
       add_request_matcher options[:when] if options
-    end
-
-    def matches?(env)
-      !! get_match(env) && super
+      add_request_matcher method(:path_matcher)
+      add_request_matcher method(:host_matcher) if uri.absolute?
     end
 
     def call(env)
-      match = get_match(env)
-
-      env["SCRIPT_NAME"] = env["SCRIPT_NAME"] + path
-      env["PATH_INFO"] = match[1]
+      env["SCRIPT_NAME"] = env["SCRIPT_NAME"] + uri.path.chomp("/")
+      env["PATH_INFO"] = matching_path env["PATH_INFO"]
 
       rack_stack.call(env)
     end
 
-    def get_match(env)
-      pattern = Regexp.new("^#{Regexp.quote(path.chomp("/")).gsub('/', '/+')}(.*)", nil, 'n')
-      pattern.match env["PATH_INFO"]
+    def uri
+      URI.parse location
+    end
+
+    def path_matcher(request)
+      matching_path(request.path_info) || location == "/"
+    end
+
+    def host_matcher(request)
+      uri.host == request.env["HTTP_HOST"]
+    end
+
+    private
+
+    def matching_path(path_info)
+      pattern = Regexp.quote(uri.path.chomp("/")).gsub("/", "/+")
+      regexp = Regexp.new("^#{pattern}(.*)", nil, "n")
+      match = regexp.match path_info
+      return match.captures.first if match
     end
   end
 end

@@ -29,7 +29,7 @@ describe Rack::Builder do
   
   it "supports mapping" do
     app = builder_to_app do
-      map '/' do |outer_env|
+      map '/' do # |outer_env|
         run lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, ['root']] }
       end
       map '/sub' do
@@ -43,7 +43,7 @@ describe Rack::Builder do
   it "doesn't dupe env even when mapping" do
     app = builder_to_app do
       use NothingMiddleware
-      map '/' do |outer_env|
+      map '/' do # |outer_env|
         run lambda { |inner_env|
           inner_env['new_key'] = 'new_value'
           [200, {"Content-Type" => "text/plain"}, ['root']]

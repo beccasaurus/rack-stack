@@ -1,5 +1,6 @@
 class RackStack
 
+  # TODO kill this?  or maybe officially support #trace methods on all of our objects (mainly RackStack) ... ?
   # ...
   class StackTracer
 
@@ -34,8 +35,19 @@ class RackStack
     end
     
     def trace_map(app)
-      @input << "map #{app.path.inspect}"
-      @input << ", when: #{app.request_matchers.map(&:matcher).inspect}" if app.request_matchers.any?
+      # horrific hack of DOOM!
+      # zOMG it got worse ... kill this with SO MUCH FIRE! ... just making things GREEN right now ...
+      matchers = app.request_matchers.map(&:matcher).reject do |matcher|
+        case matcher
+        when Proc
+          matcher.inspect.include?("rack-stack/lib/rack-stack")
+        when Method
+          matcher.inspect.include?("RackStack::RackMap#path_matcher")
+        end
+      end
+
+      @input << "map #{app.location.inspect}"
+      @input << ", when: #{matchers.inspect}" if matchers.any?
       @input << " do\n"
       @input << StackTracer.new(app.rack_stack.stack).trace.gsub(/^/, "  ") # TODO share input?
       @input << "end\n"

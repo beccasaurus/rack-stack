@@ -10,8 +10,8 @@ class RackStack
     def result(env)
       request = Rack::Request.new(env)
 
-      if @matcher.is_a? Proc
-        if @matcher.arity <= 0
+      if @matcher.respond_to?(:call)
+        if @matcher.respond_to?(:arity) && @matcher.arity <= 0
           # -> { host =~ /twitter.com/ }
           request.instance_eval(&@matcher)
         else
@@ -20,6 +20,7 @@ class RackStack
         end
       else
         # { host: /twitter.com/ }
+        # ["host", /twitter.com/]
         @matcher.all? do |request_attribute, value|
           value === request.send(request_attribute)
         end

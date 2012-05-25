@@ -5,11 +5,6 @@ class RackStack
   class RackComponent
     attr_accessor :name, :request_matchers
 
-    # call first as super from subclasses to pop the args?
-    #def initialize(*arguments)
-    #  # grab :when off last Hash argument (#use spec)
-    #end
-
     def request_matchers
       @request_matchers ||= []
     end

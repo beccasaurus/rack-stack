@@ -30,7 +30,7 @@ class RackStack
         @default_app.call(@env)
       else
         if @stack.any? {|app| app.is_a? RackMap }
-          [404, {"Content-Type" => "text/html"}, []]
+          [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{@env["PATH_INFO"]}"]]
         else
           raise NoMatchingApplicationError.new(:stack => @stack, :env => @env)
         end
