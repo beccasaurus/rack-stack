@@ -1,0 +1,3 @@
+#! /bin/sh
+set -ex
+bundle && bundle exec rspec --color --format documentation --backtrace spec/

@@ -2,6 +2,5 @@
 set -ex
 for ruby in ree 1.9.3; do
 	use-ruby $ruby
-	bundle
-	bundle exec rake test
+	make test
 done

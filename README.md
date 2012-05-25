@@ -3,16 +3,30 @@ RackStack
 
 `RackStack` is a fully managed stack of Rack applications (*inspired by [Rack::Builder][]*)
 
+Installation
+------------
+
 ```ruby
-RackStack.new do
+gem "rack-stack"
+```
+
+Usage
+-----
+
+```ruby
+require "rack/stack"
+
+rack_stack = RackStack.new do
   use MyMiddleware
   map "/admin" do
     run AdminApp.new
   end
   run MyApp.new
 end
-```
 
+# A RackStack instance is a Rack application, so you can #call it.
+rack_stack.call(env)
+```
 If you're familar with Rack::Builder, that should look very familiar!
 
 RackStack's API is actually intended to be [compatible with Rack::Builder's][compatibility].
@@ -22,6 +36,9 @@ RackStack adds a few features to Rack::Builder
  1. Use as Middleware
  1. Named Applications
  1. Conditional Logic
+ 1. Stack Manipulation
+
+    TODO ^ make these bullets links to the headers below
 
 Use as Middleware
 -----------------
@@ -62,12 +79,12 @@ Conditional Logic
 -----------------
 
 ```ruby
-stack = RackStack.new do
-  use MyMiddleware, when: { path_info: /^\/aboutus/ }
+RackStack.new do
+  use MyMiddleware, when: { path_info: /^\/about-us/ }
   map "/admin" do
-    run AdminApp.new, when: ->{|request| request.path_info =~ /^\/aboutus/ }
+    run AdminApp.new, when: ->{|request| request.path_info =~ /^\/about-us/ }
   end
-  run MyApp.new, when: ->{ path_info =~ /^\/aboutus/ }
+  run MyApp.new, when: ->{ path_info =~ /^\/about-us/ }
 end
 ```
 
@@ -75,5 +92,31 @@ RackStack allows you to easily add conditional logic for `:when` to `#run`, `#us
 
 Styles ... {}, ->() ...
 
+Stack Manipulation
+------------------
+
+A `RackStack` may be manipulated at runtime.
+
+```ruby
+rack_stack = RackStack.new
+
+# You can run the RackStack or something else, eg. mount it with Artifice
+some_rack_server.run(rack_stack)
+
+# #use, #run, and #map may be used at runtime
+rack_stack.use :my_middleware, SomeMiddleware
+rack_stack.run SomeApp.new, when: { host: "someapp.com" }
+rack_stack.map "/foo" do
+  use FooMiddleware
+  run FooApp.new
+end
+
+# and feel free to #remove named applications
+rack_stack.remove :my_middleware
+
+# or manipulate the stack Array directly with the help of RackStack::use/run/map
+rack_stack.stack.insert 1, RackStack.use(:my_middleware, SomeMiddleware)
+```
+
 [Rack::Builder]: http://rack.rubyforge.org/doc/classes/Rack/Builder.html
-[compatibility]: https://github.com/remi/rack-stack/tree/master/rack-builder-compatibility
+[compatibility]: https://github.com/remi/rack-stack/tree/master/spec/rack-builder-compatibility

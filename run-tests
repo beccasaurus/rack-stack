@@ -1,0 +1,2 @@
+#! /bin/sh
+bundle && bundle exec rspec -Ispec/rack-stack-specs/ --color --format documentation --backtrace spec/rack-stack-specs/
