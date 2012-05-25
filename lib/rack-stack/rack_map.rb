@@ -2,9 +2,9 @@ class RackStack
   class RackMap < RackComponent
     attr_accessor :location, :rack_stack
 
-    def initialize(location, default_app, options = nil, &block)
+    def initialize(location, options = nil, &block)
       self.location = location
-      self.rack_stack = RackStack.new(default_app, &block)
+      self.rack_stack = RackStack.new(&block)
 
       add_request_matcher options[:when] if options
       add_request_matcher method(:path_matcher)

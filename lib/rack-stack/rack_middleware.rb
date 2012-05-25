@@ -2,7 +2,8 @@ class RackStack
   class RackMiddleware < RackComponent
     attr_accessor :middleware_class, :arguments, :block
 
-    def initialize(middleware_class, *arguments, &block)
+    def initialize(name, middleware_class, *arguments, &block)
+      self.name = name
       self.middleware_class = middleware_class
       self.arguments = arguments
       self.block = block

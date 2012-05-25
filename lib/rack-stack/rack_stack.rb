@@ -22,23 +22,18 @@ class RackStack
   def self.use(*args, &block)
     name = args.shift if args.first.is_a?(Symbol)
     klass = args.shift
-    middleware = RackMiddleware.new(klass, *args, &block)
-    middleware.name = name
-    middleware
+    RackMiddleware.new(name, klass, *args, &block)
   end
 
   def self.run(*args)
     name = args.shift if args.first.is_a?(Symbol)
     application = args.shift
     options = args.shift
-
-    app = RackApplication.new(application, options)
-    app.name = name
-    app
+    RackApplication.new(name, application, options)
   end
 
   def self.map(path, options = nil, &block)
-    RackMap.new(path, @default_app, options, &block)
+    RackMap.new(path, options, &block)
   end
 
   attr_accessor :stack
