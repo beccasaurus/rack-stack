@@ -1,14 +1,44 @@
 # Represents a stack of Rack applications, eg. middleware, endpoints, and maps
+#
+# @example
+#   RackStack.new do
+#     use SomeMiddleware, when: ->(request){ request.path_info == "/foo" }
+#
+#     map "/foo", when: { host: /foo.com/ } do
+#       use FooMiddleware
+#       run FooApp.new
+#     end
+#
+#     run SomeApp
+#   end
 class RackStack
 
+  # Returns new {RackStack} initialized using the provided arguments.
+  # @note {RackStack#to_app} is called on the {RackStack} instance before it is returned.
   def self.app(default_app = nil, &block)
     new(default_app, &block).to_app
   end
 
+  # @api private
+  # 
+  # Alias for {RackStack.load_from}
+  #
+  # @note This is implemented for Rack::Builder compatibility only.
+  #   Configuration option parsing is not supported.
+  #   Use {RackStack.load_from} instead.
   def self.parse_file(file_path)
-    return load_from(file_path), :debug => true # XXX for Rack::Builder compatibility spec
+    return load_from(file_path),
+      :debug => true # XXX for Rack::Builder compatibility spec
   end
 
+  # Returns {RackStack} loaded from the given file.
+  #
+  # Unless the file extension is `.ru`, the file will be required and 
+  # the class/module with the name of the file will be returned.
+  #
+  # If the file extension is `.ru`, the Ruby code in the file will be 
+  # evaluated in a new RackStack block.  The resulting RackStack object 
+  # will be returned.
   def self.load_from(file_path)
     if File.extname(file_path) == ".ru"
       source = File.read file_path
@@ -20,14 +50,33 @@ class RackStack
     end
   end
 
-  # Returns RackStack object representing a Rack middleware that can be added to the #stack
+  # Returns {RackStack} object representing a Rack middleware that can be added to the {#stack}.
+  #
+  # @example
+  #   use MiddlewareClass
+  # @example
+  #   use MiddlewareClass, when: { path_info: "/foo" }
+  # @example
+  #   use :name, MiddlewareClass, when: { path_info: "/foo" }
+  # @example
+  #   use MiddlewareClass, arg1, arg2 do
+  #     # this block and the arguments will be passed 
+  #     # along to MiddlewareClass's constructor
+  #   end
   def self.use(*args, &block)
     name = args.shift if args.first.is_a?(Symbol)
     klass = args.shift
     Middleware.new(name, klass, *args, &block)
   end
 
-  # Returns RackStack object representing a Rack endpoint that can be added to the #stack
+  # Returns object representing a Rack endpoint that can be added to the {#stack}.
+  #
+  # @example
+  #   run RackApp.new
+  # @example
+  #   run RackApp.new, when: { path_info: "/foo" }
+  # @example
+  #   run :name, RackApp.new, when: { path_info: "/foo" }
   def self.run(*args)
     name = args.shift if args.first.is_a?(Symbol)
     application = args.shift
@@ -35,7 +84,14 @@ class RackStack
     Endpoint.new(name, application, options)
   end
 
-  # Returns RackStack object representing a Rack URLMap that can be added to the #stack
+  # Returns object representing a Rack URLMap that can be added to the #stack
+  #
+  # @example
+  #   map "/path", when: { host: "some-host.com" } do
+  #     use InnerMiddleware
+  #     run CustomInnerApp.new, when: ->{ path_info =~ /custom/ }
+  #     run InnerApp.new
+  #   end
   def self.map(*args, &block)
     name = args.shift if args.first.is_a?(Symbol)
     path = args.shift
@@ -43,18 +99,32 @@ class RackStack
     URLMap.new(name, path, options, &block)
   end
 
-  # Returns an Array of RackStack objects
-  # @see RackStack::use 
-  # @see RackStack::run
-  # @see RackStack::run
+  # Returns an Array of objects representing Rack applications/components.
+  #
+  # @note This Array may be manipulated manually, but all objects in the 
+  #   stack must be wrapped via {RackStack.use}, {RackStack.run}, or {RackStack.map}.
+  #
+  # @see RackStack.use 
+  # @see RackStack.run
+  # @see RackStack.map
   attr_accessor :stack
 
+  # Instantiates a new {RackStack}.
+  # @param [#call] Default application to call if no other matching applications are found.
   def initialize(default_app = nil, &block)
     @default_app = default_app
     @stack = []
     configure &block
   end
 
+  # Configures this RackStack using the provided block.
+  #
+  # @yield [nil, RackStack] If the given block has no arguments, it will be 
+  #   `instance_eval`'d against this RackStack.  Alternatively, 1 block argument 
+  #   may be used and we will call that block, yielding this RackStack instance.
+  #
+  # @note This is not 100% compatible with the behavior of blocks passed to Rack::Builder's constructor.
+  #   Rack::Builder always calls instance_eval, even when a block argument is passed.
   def configure(&block)
     if block
       if block.arity <= 0
@@ -65,31 +135,59 @@ class RackStack
     end
   end
 
+  # RackStack instanced behave like Rack applications by implementing `#call(env)`
   def call(env)
     StackResponder.new(stack, @default_app, env).finish
   end
 
+  # @api private
+  #
+  # Returns a Rack application/endpoint for this RackStack.
+  #
+  # @note This is implemented for Rack::Builder compatibility only.
+  # @raise [RuntimeError] If this RackStack contains no application (eg. only middleware), an exception will be raised.
   def to_app
     fail "missing run or map statement" if stack.all? {|app| app.is_a? Middleware }
     self
   end
 
+  # Add the provided Rack middleware to the {#stack}.
+  #
+  # See {RackStack.use RackStack::use} for parameter documentation.
   def use(*args, &block)
     @stack << self.class.use(*args, &block)
     stack_updated!
   end
 
+  # Adds a nested {RackStack} to the {#stack} that is only evaluated when the given 
+  # path/url is matched.  This is intended to be compatible with `Rack::URLMap`.
+  #
+  # See {RackStack.map RackStack::map} for parameter documentation.
   def map(*args, &block)
     @stack << self.class.map(*args, &block)
     stack_updated!
   end
 
+  # Add the provided Rack endpoint to the {#stack}.
+  #
+  # See {RackStack.run RackStack::run} for parameter documentation.
   def run(*args)
     @stack << self.class.run(*args)
     stack_updated!
   end
 
-  def [](name)
+  # TODO add middleware instance support!
+  # TODO add map support (return the inner rack_stack, so you can configure it, eg. .use or .run something new)
+
+  # Returns the Rack object in this {RackStack} with the given name, if any.
+  #
+  #  - If you `run :name, RackApplication.new`, `get(:name)` will return the `RackApplication` instance.
+  #  - If you `use :name, RackMiddleware`, `get(:name)` will return ... (?) **Not Implemented Yet**
+  #  - If you `map :name, "/path" do ... end`, `get(:name)` will return the `RackStack` instance. **Not Implemented Yet**
+  #
+  # @example
+  #   # show 3 examples, 1 for each #run, use, map
+  def get(name)
     if app = @stack.detect {|app| name == app.name }
       return app.application
     end
@@ -99,24 +197,48 @@ class RackStack
     end
   end
 
+  alias [] get
+
+  # Removes every Rack application/component in the {#stack} with the given name.
   def remove(name)
     @stack.reject! {|app| name == app.name }
     nested_rack_stacks.each {|rack_stack| rack_stack.remove(name) }
   end
 
+  # TODO deprecate!  when use/map/run are used, the component must be #insert'd into 
+  #      the correct position in our {#stack}.  in theory, it should even get a lock 
+  #      to make sure that no one else if inserting into the stack at the same time.
+  #      by doing an insert THEN sort, we're guaranteeing problems (for requests that 
+  #      come in before the sort has finished).
+  # @api private
   def stack_updated!
     sort_stack!
   end
 
+  # As a shortcut for {#get}, RackStack responds to method calls matching 
+  # the name of a named stack component by returning that component.
+  # 
+  # @example
+  #   rack_stack = RackStack.new do
+  #     run :my_app, MyApplication.new
+  #   end
+  #
+  #   rack_stack.my_app # => <MyApplication instance>
+  #
+  # @see #get
   def method_missing(name, *args, &block)
-    app = self[name] if args.empty? && block.nil?
+    app = get(name) if args.empty? && block.nil?
     app || super
   end
 
+  # Implemented as a counter part to our {#method_missing} implementation.
+  # @see #method_missing
   def respond_to?(name)
     !! self[name]
   end
 
+  # @api private
+  # Not currently publicly supported, this may be used to render a RackStack to string for debugging.
   def trace
     StackTracer.new(stack).trace
   end
