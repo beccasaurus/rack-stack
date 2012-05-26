@@ -38,8 +38,6 @@ RackStack adds a few features to Rack::Builder
  1. Conditional Logic
  1. Stack Manipulation
 
-    TODO ^ make these bullets links to the headers below
-
 Use as Middleware
 -----------------
 
