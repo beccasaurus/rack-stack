@@ -14,9 +14,10 @@ class RackStack
     end
 
     # Adds the given matcher to #request_matchers
-    def add_request_matcher(matcher)
+    def add_request_matcher(matcher, options = nil)
+      trace = options && options.has_key?(:trace) ? options[:trace] : true
       if matcher
-        matcher = RequestMatcher.new(matcher) unless matcher.is_a?(RequestMatcher)
+        matcher = RequestMatcher.new(matcher, trace) unless matcher.is_a?(RequestMatcher)
         request_matchers << matcher
       end
     end

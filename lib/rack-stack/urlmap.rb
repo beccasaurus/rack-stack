@@ -11,8 +11,8 @@ class RackStack
       self.rack_stack = RackStack.new(&block)
 
       add_request_matcher options[:when] if options
-      add_request_matcher method(:path_matcher)
-      add_request_matcher method(:host_matcher) if uri.absolute?
+      add_request_matcher method(:path_matcher), :trace => false
+      add_request_matcher method(:host_matcher), :trace => false if uri.absolute?
     end
 
     def call(env)

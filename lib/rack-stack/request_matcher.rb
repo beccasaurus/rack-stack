@@ -3,10 +3,11 @@ class RackStack
   # TODO add RequestMatcher documentation to this!
   # @api private
   class RequestMatcher
-    attr_accessor :matcher
+    attr_accessor :matcher, :trace
 
-    def initialize(matcher)
+    def initialize(matcher, trace = true)
       self.matcher = matcher
+      self.trace = trace
     end
 
     def result(env)

@@ -25,26 +25,19 @@ class RackStack
     end
 
     def trace_middleware(app)
+      matchers = app.request_matchers.select(&:trace).map(&:matcher)
+
       @input << "use"
       @input << " #{app.name.inspect}," if app.name
       @input << " #{app.middleware_class}"
       @input << ", #{app.arguments.map(&:inspect).join(', ')}" if app.arguments.any?
       @input << ", &#{app.block}" if app.block
-      @input << ", when: #{app.request_matchers.map(&:matcher).inspect}" if app.request_matchers.any?
+      @input << ", when: #{matchers.inspect}" if matchers.any?
       @input << "\n"
     end
     
     def trace_map(app)
-      # horrific hack of DOOM!
-      # zOMG it got worse ... kill this with SO MUCH FIRE! ... just making things GREEN right now ...
-      matchers = app.request_matchers.map(&:matcher).reject do |matcher|
-        case matcher
-        when Proc
-          matcher.inspect.include?("rack-stack/lib/rack-stack")
-        when Method
-          matcher.inspect.include?("RackStack::URLMap#path_matcher")
-        end
-      end
+      matchers = app.request_matchers.select(&:trace).map(&:matcher)
 
       @input << "map"
       @input << " #{app.name.inspect}," if app.name
@@ -56,10 +49,12 @@ class RackStack
     end
 
     def trace_application(app)
+      matchers = app.request_matchers.select(&:trace).map(&:matcher)
+
       @input << "run"
       @input << " #{app.name.inspect}," if app.name
       @input << " #{app.application}"
-      @input << ", when: #{app.request_matchers.map(&:matcher).inspect}" if app.request_matchers.any?
+      @input << ", when: #{matchers.inspect}" if matchers.any?
       @input << "\n"
     end
   end
