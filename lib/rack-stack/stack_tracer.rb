@@ -1,7 +1,7 @@
 class RackStack
 
+  # @api private
   # TODO kill this?  or maybe officially support #trace methods on all of our objects (mainly RackStack) ... ?
-  # ...
   class StackTracer
 
     def initialize(stack)

@@ -1,5 +1,7 @@
 class RackStack
 
+  # TODO add RequestMatcher documentation to this!
+  # @api private
   class RequestMatcher
     attr_accessor :matcher
 
