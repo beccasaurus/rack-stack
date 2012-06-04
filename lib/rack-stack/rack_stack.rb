@@ -109,6 +109,8 @@ class RackStack
   # @see RackStack.map
   attr_accessor :stack
 
+  # TODO expose default_app as an attribute
+
   # Instantiates a new {RackStack}.
   # @param [#call] Default application to call if no other matching applications are found.
   def initialize(default_app = nil, &block)
@@ -181,7 +183,7 @@ class RackStack
   #
   # @example
   #   # show 3 examples, 1 for each #run, use, map TODO
-  def get(name)
+  def get(name) # TODO accept a block and (instance_eval || call) it (like we do on initialize) with the returned app.
     if app = @stack.detect {|app| name == app.name }
       case app
       when Middleware then return app.middleware
