@@ -155,8 +155,7 @@ class RackStack
   #
   # See {RackStack.use RackStack::use} for parameter documentation.
   def use(*args, &block)
-    @stack << self.class.use(*args, &block)
-    stack_updated!
+    add_to_stack self.class.use(*args, &block)
   end
 
   # Adds a nested {RackStack} to the {#stack} that is only evaluated when the given 
@@ -164,16 +163,14 @@ class RackStack
   #
   # See {RackStack.map RackStack::map} for parameter documentation.
   def map(*args, &block)
-    @stack << self.class.map(*args, &block)
-    stack_updated!
+    add_to_stack self.class.map(*args, &block)
   end
 
   # Add the provided Rack endpoint to the {#stack}.
   #
   # See {RackStack.run RackStack::run} for parameter documentation.
   def run(*args)
-    @stack << self.class.run(*args)
-    stack_updated!
+    add_to_stack self.class.run(*args)
   end
 
   # TODO add middleware instance support!
@@ -203,16 +200,6 @@ class RackStack
   def remove(name)
     @stack.reject! {|app| name == app.name }
     nested_rack_stacks.each {|rack_stack| rack_stack.remove(name) }
-  end
-
-  # TODO deprecate!  when use/map/run are used, the component must be #insert'd into 
-  #      the correct position in our {#stack}.  in theory, it should even get a lock 
-  #      to make sure that no one else if inserting into the stack at the same time.
-  #      by doing an insert THEN sort, we're guaranteeing problems (for requests that 
-  #      come in before the sort has finished).
-  # @api private
-  def stack_updated!
-    sort_stack!
   end
 
   # As a shortcut for {#get}, RackStack responds to method calls matching 
@@ -245,16 +232,30 @@ class RackStack
 
   private
 
-  def sort_stack!
-    @stack = @stack.sort_by do |layer|
-      # We assume a certain stack order.  #use, #map, #run
-      class_value = [Middleware, URLMap, Endpoint].index(layer.class)
-
-      # We order every #map by the length of its location (longest first)
-      map_location_value = layer.is_a?(URLMap) ? (-layer.location.length) : 0
-
-      [class_value, map_location_value]
+  def add_to_stack(app)
+    case app
+    when Endpoint
+      @stack.push app
+    when URLMap
+      @stack.insert index_for_next_urlmap(app), app
+    when Middleware
+      if non_middleware = @stack.index {|a| not a.is_a? Middleware }
+        @stack.insert non_middleware, app
+      else
+        @stack.push app
+      end
     end
+  end
+
+  def index_for_next_urlmap(app)
+    @stack.each_with_index do |stack_app, i|
+      if stack_app.is_a? Endpoint
+        return i
+      elsif stack_app.is_a? URLMap
+        return i if app.location.length > stack_app.location.length
+      end
+    end
+    @stack.length
   end
 
   def nested_rack_stacks

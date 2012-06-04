@@ -112,7 +112,7 @@ end
 # and feel free to #remove named applications
 rack_stack.remove :my_middleware
 
-# or manipulate the stack Array directly with the help of RackStack::use/run/map
+# or manipulate the stack Array directly (with the help of RackStack::use/run/map)
 rack_stack.stack.insert 1, RackStack.use(:my_middleware, SomeMiddleware)
 ```
 
