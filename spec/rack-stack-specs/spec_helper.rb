@@ -2,6 +2,8 @@ require "rspec"
 require "rack-stack"
 require "rack/test"
 
+# TODO move all of this content into supporting files
+
 def clean_trace(trace, options = {})
   options[:indent] ||= 6
   trace.gsub(/^ {#{options[:indent]}}/, "").strip + "\n"
@@ -41,13 +43,15 @@ def simple_app(name = nil, &block)
 end
 
 class SimpleApp
+  attr_accessor :name
+
   def initialize(name = nil, &block)
-    @name = name
+    self.name = name
     @block = block
   end
 
   def to_s
-    "SimpleApp<#{@name || object_id}>"
+    "SimpleApp<#{name || object_id}>"
   end
 
   def call(env)
@@ -63,5 +67,24 @@ class SimpleApp
       end
     end
     response.finish
+  end
+end
+
+# NamedMiddleware is a middleware that has a name and does nothing.
+# Just for testing / debugging.
+class NamedMiddleware
+  attr_accessor :name
+
+  def initialize(app, name = nil)
+    @app = app
+    self.name = name
+  end
+
+  def to_s
+    "NamedMiddleware<#{name || object_id}>"
+  end
+
+  def call(env)
+    @app.call(env)
   end
 end

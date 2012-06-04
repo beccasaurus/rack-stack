@@ -186,11 +186,15 @@ class RackStack
   #   # show 3 examples, 1 for each #run, use, map
   def get(name)
     if app = @stack.detect {|app| name == app.name }
-      return app.application
+      case app
+      when Middleware then return app.middleware
+      when URLMap then return app.rack_stack
+      when Endpoint then return app.application
+      end
     end
 
     nested_rack_stacks.each do |rack_stack|
-      return app if app = rack_stack[name]
+      return app if app = rack_stack.get(name)
     end
   end
 
@@ -221,7 +225,7 @@ class RackStack
   # Implemented as a counter part to our {#method_missing} implementation.
   # @see #method_missing
   def respond_to?(name)
-    !! self[name]
+    !! get(name)
   end
 
   # @api private

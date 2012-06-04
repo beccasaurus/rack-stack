@@ -3,7 +3,7 @@ class RackStack
   # @api private
   # Represents a Rack middleware (eg. added via #use)
   class Middleware < Application
-    attr_accessor :middleware_class, :arguments, :block
+    attr_accessor :middleware_class, :arguments, :block, :middleware
 
     def initialize(name, middleware_class, *arguments, &block)
       self.name = name
@@ -13,12 +13,13 @@ class RackStack
       read_options_from_arguments!
     end
 
+    # TODO when is this called again?  it's not clear.  can we rename this to something that'll make it obvious?  not "update application"
     def update_application(rack_application)
-      @middleware = middleware_class.new(rack_application, *arguments, &block)
+      self.middleware = middleware_class.new(rack_application, *arguments, &block)
     end
 
     def call(env)
-      @middleware.call(env)
+      self.middleware.call(env)
     end
 
     private

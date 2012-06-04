@@ -13,10 +13,12 @@ describe RackStack do
     def call(env) end
   end
 
+  before do
+    @app = RackStack.new
+  end
+
   it "is a Rack application" do
-    @app = RackStack.new do
-      run simple_app { write "Hello World" }
-    end
+    @app.run simple_app { write "Hello World" }
 
     get "/"
 
@@ -81,9 +83,7 @@ describe RackStack do
   end
 
   it "raises RackStack::NoMatchingApplicationError (with the RackStack and a stack trace)" do
-    @app = RackStack.new do
-      run simple_app, :when => { :path_info => /this won't match any paths we request/ }
-    end
+    @app.run simple_app, :when => { :path_info => /this won't match any paths we request/ }
   
     begin
       get "/some-path"
@@ -106,9 +106,9 @@ describe RackStack do
   end
 
   it "can #run application" do
-    @app = RackStack.new do
-      run simple_app { write "Hi from application" }
-    end
+    @app.run simple_app { write "Hi from application" }
+
+    get("/").body.should == "Hi from application"
   end
   
   it "RackStack#remove removes components from nested maps" do
@@ -141,6 +141,69 @@ describe RackStack do
       end
     })
   end
+
+  # Test #get, #[], and #method_missing with these ... TODO
+  it "can #get(:name) Endpoint (returns Rack endpoint instance)" do
+    @app.run :outer, simple_app(:outer)
+    @app.map :foo_map, "/foo" do
+      run :inner_foo, simple_app(:inner_foo)
+      map :bar_map, "/bar" do
+        run :inner_bar, simple_app(:inner_bar)
+      end
+    end
+
+    @app.get(:outer).to_s.should == "SimpleApp<outer>"
+    @app.get(:foo_map).should be_a(RackStack)
+    @app.get(:foo_map).get(:inner_foo).to_s.should == "SimpleApp<inner_foo>"
+    @app.get(:foo_map).get(:bar_map).get(:inner_bar).to_s.should == "SimpleApp<inner_bar>"
+
+    # []
+    @app[:outer].to_s.should == "SimpleApp<outer>"
+    @app[:foo_map].should be_a(RackStack)
+    @app[:foo_map][:inner_foo].to_s.should == "SimpleApp<inner_foo>"
+    @app[:foo_map][:bar_map][:inner_bar].to_s.should == "SimpleApp<inner_bar>"
+
+    # method_missing
+    @app.outer.to_s.should == "SimpleApp<outer>"
+    @app.foo_map.should be_a(RackStack)
+    @app.foo_map.inner_foo.to_s.should == "SimpleApp<inner_foo>"
+    @app.foo_map.bar_map.inner_bar.to_s.should == "SimpleApp<inner_bar>"
+  end
+
+  # @app.use :foo, NamedMiddleware, "foo"
+  it "can #get(:name) Middleware (returns Rack middleware instance)" do
+    pending "Do we need #update_application?"
+
+    @app.use :outer, NamedMiddleware, :outer
+    @app.map :foo_map, "/foo" do
+      use :inner_foo, NamedMiddleware, :inner_foo
+      map :bar_map, "/bar" do
+        use :inner_bar, NamedMiddleware, :inner_bar
+      end
+    end
+
+    @app.get(:outer) # <--- nil, because update_application hasn't been called yet (no requests yet)
+
+    puts "OUTER IS --> #{@app.get(:outer).class.name}"
+    @app.get(:outer).to_s.should == "NamedMiddleware<outer>"
+    @app.get(:foo_map).should be_a(RackStack)
+    @app.get(:foo_map).get(:inner_foo).to_s.should == "NamedMiddleware<inner_foo>"
+    @app.get(:foo_map).get(:bar_map).get(:inner_bar).to_s.should == "NamedMiddleware<inner_bar>"
+
+    # []
+    @app[:outer].to_s.should == "NamedMiddleware<outer>"
+    @app[:foo_map].should be_a(RackStack)
+    @app[:foo_map][:inner_foo].to_s.should == "NamedMiddleware<inner_foo>"
+    @app[:foo_map][:bar_map][:inner_bar].to_s.should == "NamedMiddleware<inner_bar>"
+
+    # method_missing
+    @app.outer.to_s.should == "NamedMiddleware<outer>"
+    @app.foo_map.should be_a(RackStack)
+    @app.foo_map.inner_foo.to_s.should == "NamedMiddleware<inner_foo>"
+    @app.foo_map.bar_map.inner_bar.to_s.should == "NamedMiddleware<inner_bar>"
+  end
+
+  it "can #get(:name) URLMap (returns inner RackStack)" # try @app.map_1.map_2.nested_app
 
   it "RackStack#[:name] looks in nested maps" do
     @app = RackStack.new do
