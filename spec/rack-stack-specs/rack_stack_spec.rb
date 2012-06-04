@@ -1,6 +1,5 @@
 require "spec_helper"
 
-# TODO Clean up this spec (this was the first spec).  Will clean it up soon ...
 describe RackStack do
   include Rack::Test::Methods
 
@@ -142,7 +141,6 @@ describe RackStack do
     })
   end
 
-  # Test #get, #[], and #method_missing with these ... TODO
   it "can #get(:name) Endpoint (returns Rack endpoint instance)" do
     @app.run :outer, simple_app(:outer)
     @app.map :foo_map, "/foo" do
@@ -172,8 +170,6 @@ describe RackStack do
 
   # @app.use :foo, NamedMiddleware, "foo"
   it "can #get(:name) Middleware (returns Rack middleware instance)" do
-    pending "Do we need #update_application?"
-
     @app.use :outer, NamedMiddleware, :outer
     @app.map :foo_map, "/foo" do
       use :inner_foo, NamedMiddleware, :inner_foo
@@ -182,9 +178,6 @@ describe RackStack do
       end
     end
 
-    @app.get(:outer) # <--- nil, because update_application hasn't been called yet (no requests yet)
-
-    puts "OUTER IS --> #{@app.get(:outer).class.name}"
     @app.get(:outer).to_s.should == "NamedMiddleware<outer>"
     @app.get(:foo_map).should be_a(RackStack)
     @app.get(:foo_map).get(:inner_foo).to_s.should == "NamedMiddleware<inner_foo>"
@@ -201,24 +194,5 @@ describe RackStack do
     @app.foo_map.should be_a(RackStack)
     @app.foo_map.inner_foo.to_s.should == "NamedMiddleware<inner_foo>"
     @app.foo_map.bar_map.inner_bar.to_s.should == "NamedMiddleware<inner_bar>"
-  end
-
-  it "can #get(:name) URLMap (returns inner RackStack)" # try @app.map_1.map_2.nested_app
-
-  it "RackStack#[:name] looks in nested maps" do
-    @app = RackStack.new do
-      map "/outer" do
-        map "/inner" do
-          run :the_nested_app, simple_app(:the_nested_app)
-        end
-      end
-    end
-
-    @app[:the_nested_app].should be_a(SimpleApp)
-    @app[:the_nested_app].to_s.should == "SimpleApp<the_nested_app>"
-
-    # Double-check method_missing
-    @app.the_nested_app.should be_a(SimpleApp)
-    @app.the_nested_app.to_s.should == "SimpleApp<the_nested_app>"
   end
 end

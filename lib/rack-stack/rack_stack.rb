@@ -173,9 +173,6 @@ class RackStack
     add_to_stack self.class.run(*args)
   end
 
-  # TODO add middleware instance support!
-  # TODO add map support (return the inner rack_stack, so you can configure it, eg. .use or .run something new)
-
   # Returns the Rack object in this {RackStack} with the given name, if any.
   #
   #  - If you `run :name, RackApplication.new`, `get(:name)` will return the `RackApplication` instance.
@@ -183,7 +180,7 @@ class RackStack
   #  - If you `map :name, "/path" do ... end`, `get(:name)` will return the `RackStack` instance. **Not Implemented Yet**
   #
   # @example
-  #   # show 3 examples, 1 for each #run, use, map
+  #   # show 3 examples, 1 for each #run, use, map TODO
   def get(name)
     if app = @stack.detect {|app| name == app.name }
       case app

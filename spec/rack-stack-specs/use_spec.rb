@@ -7,10 +7,22 @@ describe RackStack, "#use" do
     Rack::Lint.new @app
   end
 
+  class MiddlewareThatTracksAllInstances < NamedMiddleware
+    def self.instances
+      @instances ||= []
+    end
+
+    def initialize(*args)
+      self.class.instances.push self
+      super
+    end
+  end
+
   before do
     @app         = RackStack.new
     @hello_app   = simple_app {|req,resp| resp.write "Hello from #{req.path_info}"   }
     @goodbye_app = simple_app {|req,resp| resp.write "Goodbye from #{req.path_info}" }
+    MiddlewareThatTracksAllInstances.instances.clear
   end
 
   it "MiddlewareClass" do
@@ -103,6 +115,34 @@ describe RackStack, "#use" do
     @app.run @hello_app
     get("/").body.should == "%%%Hello from /%%%"
     get("/foo").body.should == "Hello from /foo" # :when didn't hit this time, so no middleware
+  end
+
+  it "MiddlewareThatTracksAllInstances sample class works as expected" do
+    MiddlewareThatTracksAllInstances.instances.should be_empty
+
+    MiddlewareThatTracksAllInstances.new simple_app, "First"
+    MiddlewareThatTracksAllInstances.instances.length.should == 1
+    MiddlewareThatTracksAllInstances.instances.last.to_s.should == "MiddlewareThatTracksAllInstances<First>"
+
+    MiddlewareThatTracksAllInstances.new simple_app, "Second"
+    MiddlewareThatTracksAllInstances.instances.length.should == 2
+    MiddlewareThatTracksAllInstances.instances.last.to_s.should == "MiddlewareThatTracksAllInstances<Second>"
+  end
+
+  it "reuses the same middleware instance for all requests (so it may have state)" do
+    MiddlewareThatTracksAllInstances.instances.should be_empty
+
+    @app.use MiddlewareThatTracksAllInstances, "MyMiddleware"
+    @app.run simple_app
+
+    get "/"
+    MiddlewareThatTracksAllInstances.instances.length.should == 1
+    MiddlewareThatTracksAllInstances.instances.first.to_s.should == "MiddlewareThatTracksAllInstances<MyMiddleware>"
+
+    get "/"
+    get "/"
+    get "/"
+    MiddlewareThatTracksAllInstances.instances.length.should == 1 # no additional instances instantiated
   end
 
 end

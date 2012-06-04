@@ -3,7 +3,7 @@ require "spec_helper"
 describe RackStack, "#trace" do
 
   class MiddlewareToTrace
-    def initialize(app) end
+    def initialize(app, *args) end
     def call(env) end
   end
 

@@ -51,7 +51,7 @@ class SimpleApp
   end
 
   def to_s
-    "SimpleApp<#{name || object_id}>"
+    "#{self.class.name}<#{name || object_id}>"
   end
 
   def call(env)
@@ -81,7 +81,7 @@ class NamedMiddleware
   end
 
   def to_s
-    "NamedMiddleware<#{name || object_id}>"
+    "#{self.class.name}<#{name || object_id}>"
   end
 
   def call(env)
