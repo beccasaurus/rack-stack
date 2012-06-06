@@ -12,6 +12,7 @@
 #     run SomeApp
 #   end
 class RackStack
+  include IndifferentEval
 
   # Returns new {RackStack} initialized using the provided arguments.
   # @note {RackStack#to_app} is called on the {RackStack} instance before it is returned.
@@ -128,13 +129,7 @@ class RackStack
   # @note This is not 100% compatible with the behavior of blocks passed to Rack::Builder's constructor.
   #   Rack::Builder always calls instance_eval, even when a block argument is passed.
   def configure(&block)
-    if block
-      if block.arity <= 0
-        instance_eval &block
-      else
-        block.call self
-      end
-    end
+    indifferent_eval &block
   end
 
   # RackStack instanced behave like Rack applications by implementing `#call(env)`
@@ -185,13 +180,7 @@ class RackStack
   #   # show 3 examples, 1 for each #run, use, map TODO
   def get(name, &block)
     app = get_app_by_name(name)
-    if app && block
-      if block.arity <= 0
-        app.instance_eval &block
-      else
-        block.call app
-      end
-    end
+    indifferent_eval(app, &block) if app
     app
   end
 

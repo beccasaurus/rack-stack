@@ -3,6 +3,8 @@ class RackStack
   # TODO add RequestMatcher documentation to this!
   # @api private
   class RequestMatcher
+    include IndifferentEval
+
     attr_accessor :matcher, :trace
 
     def initialize(matcher, trace = true)
@@ -14,13 +16,9 @@ class RackStack
       request = Rack::Request.new(env)
 
       if @matcher.respond_to?(:call)
-        if @matcher.respond_to?(:arity) && @matcher.arity <= 0
-          # -> { host =~ /twitter.com/ }
-          request.instance_eval(&@matcher)
-        else
-          # ->(request){ request.host =~ /twitter.com/ }
-          @matcher.call(request)
-        end
+        # -> { host =~ /twitter.com/ }
+        # ->(request){ request.host =~ /twitter.com/ }
+        indifferent_eval request, &@matcher
       else
         # { host: /twitter.com/ }
         # ["host", /twitter.com/]
