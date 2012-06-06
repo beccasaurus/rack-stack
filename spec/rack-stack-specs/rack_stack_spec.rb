@@ -195,4 +195,28 @@ describe RackStack do
     @app.foo_map.inner_foo.to_s.should == "NamedMiddleware<inner_foo>"
     @app.foo_map.bar_map.inner_bar.to_s.should == "NamedMiddleware<inner_bar>"
   end
+
+  it "can #get(:name){|app| app.app_method }" do
+    @app.use :outer, NamedMiddleware, :outer
+
+    value = nil
+    @app.get(:outer){|app| value = app.name }
+    value.should == :outer
+
+    value = nil
+    @app.outer {|app| value = app.name }
+    value.should == :outer
+  end
+
+  it "can #get(:name){ app_method }" do
+    @app.use :outer, NamedMiddleware, :outer
+
+    value = nil
+    @app.get(:outer){ value = name }
+    value.should == :outer
+
+    value = nil
+    @app.outer { value = name }
+    value.should == :outer
+  end
 end

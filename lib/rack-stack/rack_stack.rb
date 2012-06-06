@@ -183,7 +183,19 @@ class RackStack
   #
   # @example
   #   # show 3 examples, 1 for each #run, use, map TODO
-  def get(name) # TODO accept a block and (instance_eval || call) it (like we do on initialize) with the returned app.
+  def get(name, &block)
+    app = get_app_by_name(name)
+    if app && block
+      if block.arity <= 0
+        app.instance_eval &block
+      else
+        block.call app
+      end
+    end
+    app
+  end
+
+  def get_app_by_name(name)
     if app = @stack.detect {|app| name == app.name }
       case app
       when Middleware then return app.middleware
@@ -217,8 +229,7 @@ class RackStack
   #
   # @see #get
   def method_missing(name, *args, &block)
-    app = get(name) if args.empty? && block.nil?
-    app || super
+    get(name, &block) || super
   end
 
   # Implemented as a counter part to our {#method_missing} implementation.
