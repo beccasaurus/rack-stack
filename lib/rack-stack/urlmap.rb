@@ -22,6 +22,20 @@ class RackStack
       rack_stack.call(env)
     end
 
+    def trace
+      matchers = request_matchers.select(&:trace).map(&:matcher)
+
+      traced = ""
+      traced << "map"
+      traced << " #{name.inspect}," if name
+      traced << " #{location.inspect}"
+      traced << ", when: #{matchers.inspect}" if matchers.any?
+      traced << " do\n"
+      traced << rack_stack.trace.gsub(/^/, "  ") # TODO share input?
+      traced << "end\n"
+      traced
+    end
+
     def uri
       URI.parse location
     end

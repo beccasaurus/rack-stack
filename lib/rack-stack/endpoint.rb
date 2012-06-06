@@ -18,5 +18,17 @@ class RackStack
     def call(env)
       application.call(env)
     end
+
+    def trace
+      matchers = request_matchers.select(&:trace).map(&:matcher)
+
+      traced = ""
+      traced << "run"
+      traced << " #{name.inspect}," if name
+      traced << " #{application}"
+      traced << ", when: #{matchers.inspect}" if matchers.any?
+      traced << "\n"
+      traced
+    end
   end
 end

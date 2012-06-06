@@ -23,6 +23,20 @@ class RackStack
       self.middleware.call(env)
     end
 
+    def trace
+      matchers = request_matchers.select(&:trace).map(&:matcher)
+
+      traced = ""
+      traced << "use"
+      traced << " #{name.inspect}," if name
+      traced << " #{middleware_class}"
+      traced << ", #{arguments.map(&:inspect).join(', ')}" if arguments.any?
+      traced << ", &#{block}" if block
+      traced << ", when: #{matchers.inspect}" if matchers.any?
+      traced << "\n"
+      traced
+    end
+
     private
 
     def read_options_from_arguments!

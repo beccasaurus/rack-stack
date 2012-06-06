@@ -230,7 +230,7 @@ class RackStack
   # @api private
   # Not currently publicly supported, this may be used to render a RackStack to string for debugging.
   def trace
-    StackTracer.new(stack).trace
+    @stack.map(&:trace).join
   end
 
   private
