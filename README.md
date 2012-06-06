@@ -62,7 +62,7 @@ RackStack.new do
   use MyMiddleware, when: ->{ path_info =~ /about-us/ }
 
   # When a Hash (or Array of pairs) is given, each value will be compared against the value from the 
-  # current request.  In this example, the following would be evaluated: /about-us === "<the path info>"
+  # current request.  In this example, the following would be evaluated: /about-us/ === "<the path info>"
   use MyMiddleware, when: { path_info: /about-us/ }
 
 end
