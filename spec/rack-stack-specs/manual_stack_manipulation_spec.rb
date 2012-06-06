@@ -9,7 +9,7 @@ describe "Manual stack manipulation" do
 
   before do
     @app = RackStack.new do
-      run simple_app(:default){ write "default" }
+      run SimpleApp.new(:default){ write "default" }
     end
     @app.trace.should == clean_trace("run SimpleApp<default>")
     get("/").body.should == "default"
@@ -17,7 +17,7 @@ describe "Manual stack manipulation" do
 
   describe "adding applications to run" do
     it "first" do
-      @app.stack.push RackStack.run simple_app(:last){ write "run me last" }
+      @app.stack.push RackStack.run SimpleApp.new(:last){ write "run me last" }
       @app.trace.should == clean_trace(%{
         run SimpleApp<default>
         run SimpleApp<last>
@@ -26,7 +26,7 @@ describe "Manual stack manipulation" do
     end
 
     it "last" do
-      @app.stack.unshift RackStack.run simple_app(:first){ write "run me first!" }
+      @app.stack.unshift RackStack.run SimpleApp.new(:first){ write "run me first!" }
       @app.trace.should == clean_trace(%{
         run SimpleApp<first>
         run SimpleApp<default>

@@ -1,5 +1,3 @@
-require "stringio" # TODO remove when migrating from StackTracer --> individual #trace implementations
-
 require "rack"
 
 class RackStack

@@ -9,8 +9,8 @@ describe RackStack, "#run" do
 
   before do
     @app         = RackStack.new
-    @hello_app   = simple_app(:hello){|req,resp| resp.write "Hello from #{req.path_info}"   }
-    @goodbye_app = simple_app(:goodbye){|req,resp| resp.write "Goodbye from #{req.path_info}" }
+    @hello_app   = SimpleApp.new(:hello){|req,resp| resp.write "Hello from #{req.path_info}"   }
+    @goodbye_app = SimpleApp.new(:goodbye){|req,resp| resp.write "Goodbye from #{req.path_info}" }
   end
 
   it "@app" do

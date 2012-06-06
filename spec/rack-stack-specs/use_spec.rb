@@ -20,8 +20,8 @@ describe RackStack, "#use" do
 
   before do
     @app         = RackStack.new
-    @hello_app   = simple_app {|req,resp| resp.write "Hello from #{req.path_info}"   }
-    @goodbye_app = simple_app {|req,resp| resp.write "Goodbye from #{req.path_info}" }
+    @hello_app   = SimpleApp.new {|req,resp| resp.write "Hello from #{req.path_info}"   }
+    @goodbye_app = SimpleApp.new {|req,resp| resp.write "Goodbye from #{req.path_info}" }
     MiddlewareThatTracksAllInstances.instances.clear
   end
 
@@ -120,11 +120,11 @@ describe RackStack, "#use" do
   it "MiddlewareThatTracksAllInstances sample class works as expected" do
     MiddlewareThatTracksAllInstances.instances.should be_empty
 
-    MiddlewareThatTracksAllInstances.new simple_app, "First"
+    MiddlewareThatTracksAllInstances.new SimpleApp.new, "First"
     MiddlewareThatTracksAllInstances.instances.length.should == 1
     MiddlewareThatTracksAllInstances.instances.last.to_s.should == "MiddlewareThatTracksAllInstances<First>"
 
-    MiddlewareThatTracksAllInstances.new simple_app, "Second"
+    MiddlewareThatTracksAllInstances.new SimpleApp.new, "Second"
     MiddlewareThatTracksAllInstances.instances.length.should == 2
     MiddlewareThatTracksAllInstances.instances.last.to_s.should == "MiddlewareThatTracksAllInstances<Second>"
   end
@@ -133,7 +133,7 @@ describe RackStack, "#use" do
     MiddlewareThatTracksAllInstances.instances.should be_empty
 
     @app.use MiddlewareThatTracksAllInstances, "MyMiddleware"
-    @app.run simple_app
+    @app.run SimpleApp.new
 
     get "/"
     MiddlewareThatTracksAllInstances.instances.length.should == 1

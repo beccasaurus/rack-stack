@@ -17,7 +17,7 @@ describe RackStack do
   end
 
   it "is a Rack application" do
-    @app.run simple_app { write "Hello World" }
+    @app.run SimpleApp.new { write "Hello World" }
 
     get "/"
 
@@ -34,13 +34,13 @@ describe RackStack do
         # If /rack-stack is requested, this route will get hit.
         # Otherwise, RackStack will pass the #call through to the our application.
         map "/rack-stack" do
-          run simple_app { write "Rack Stack!" }
+          run SimpleApp.new { write "Rack Stack!" }
         end
       end
 
       # If our middleware doesn't return a response, this is the default application 
       # that we'll fall back to.
-      run simple_app { write "Rack::Builder outer app" }
+      run SimpleApp.new { write "Rack::Builder outer app" }
 
     }.to_app
 
@@ -50,31 +50,31 @@ describe RackStack do
   end
 
   it "Rack::Builder only supports instance_eval-ing its block" do
-    @ivar_app = simple_app { write "Hi from @ivar app" }
+    @ivar_app = SimpleApp.new { write "Hi from @ivar app" }
 
     @app = Rack::Builder.new {|o|
-      o.run @ivar_app || simple_app { write "@ivar was out of scope" }
+      o.run @ivar_app || SimpleApp.new { write "@ivar was out of scope" }
     }.to_app
 
     get("/").body.should == "@ivar was out of scope"
   end
 
   it "can pass a block argument to constructor (does not instance_eval)" do
-    @ivar_app = simple_app { write "Hi from @ivar app" }
+    @ivar_app = SimpleApp.new { write "Hi from @ivar app" }
 
     @app = RackStack.new {|o|
-      o.run @ivar_app || simple_app { write "@ivar was out of scope" }
+      o.run @ivar_app || SimpleApp.new { write "@ivar was out of scope" }
     }.to_app
 
     get("/").body.should == "Hi from @ivar app"
   end
 
   it "calls #default_app (or raises exception) if no matching application found" do
-    default_app = simple_app { write "Hello from Default App" }
+    default_app = SimpleApp.new { write "Hello from Default App" }
 
     @app = RackStack.new(default_app) do
       map "/this-wont-match" do
-        run simple_app { write "This won't match" }
+        run SimpleApp.new { write "This won't match" }
       end
     end
 
@@ -82,7 +82,7 @@ describe RackStack do
   end
 
   it "raises RackStack::NoMatchingApplicationError (with the RackStack and a stack trace)" do
-    @app.run simple_app, :when => { :path_info => /this won't match any paths we request/ }
+    @app.run SimpleApp.new, :when => { :path_info => /this won't match any paths we request/ }
   
     begin
       get "/some-path"
@@ -100,12 +100,12 @@ describe RackStack do
       RuntimeError, "missing run or map statement"
     )
 
-    RackStack.new { run simple_app }.to_app # OK
+    RackStack.new { run SimpleApp.new }.to_app # OK
     RackStack.new { map "/foo" do end }.to_app # OK
   end
 
   it "can #run application" do
-    @app.run simple_app { write "Hi from application" }
+    @app.run SimpleApp.new { write "Hi from application" }
 
     get("/").body.should == "Hi from application"
   end
@@ -114,11 +114,11 @@ describe RackStack do
     @app = RackStack.new do
       map "/foo" do
         map "/foo" do
-          run :name, simple_app(:inner_inner)
+          run :name, SimpleApp.new(:inner_inner)
         end
-        run :name, simple_app(:inner)
+        run :name, SimpleApp.new(:inner)
       end
-      run :name, simple_app(:outer)
+      run :name, SimpleApp.new(:outer)
     end
 
     @app.trace.should == clean_trace(%{
@@ -142,11 +142,11 @@ describe RackStack do
   end
 
   it "can #get(:name) Endpoint (returns Rack endpoint instance)" do
-    @app.run :outer, simple_app(:outer)
+    @app.run :outer, SimpleApp.new(:outer)
     @app.map :foo_map, "/foo" do
-      run :inner_foo, simple_app(:inner_foo)
+      run :inner_foo, SimpleApp.new(:inner_foo)
       map :bar_map, "/bar" do
-        run :inner_bar, simple_app(:inner_bar)
+        run :inner_bar, SimpleApp.new(:inner_bar)
       end
     end
 

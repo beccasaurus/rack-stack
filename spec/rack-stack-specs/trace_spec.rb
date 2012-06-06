@@ -9,7 +9,7 @@ describe RackStack, "#trace" do
 
   before do
     @app = RackStack.new
-    @example_app = simple_app(:example_app)
+    @example_app = SimpleApp.new(:example_app)
   end
 
   it "no components" do
@@ -60,7 +60,7 @@ describe RackStack, "#trace" do
   describe "map '/foo', :when => {}" do
     it "run @app" do
       @app.map "/foo", :when => { :host => /twitter.com/ } do
-        run simple_app(:foo_app), :when => { :path_info => "/foo" }
+        run SimpleApp.new(:foo_app), :when => { :path_info => "/foo" }
       end
 
       @app.trace.should == clean_trace(%{
@@ -74,7 +74,7 @@ describe RackStack, "#trace" do
   describe "map '/foo' do" do
     it "run @app" do
       @app.map "/foo" do
-        run simple_app(:foo_app)
+        run SimpleApp.new(:foo_app)
       end
 
       @app.trace.should == clean_trace(%{
@@ -88,9 +88,9 @@ describe RackStack, "#trace" do
       it "run @app" do
         @app.map "/foo" do
           map "/bar" do
-            run simple_app(:bar_app)
+            run SimpleApp.new(:bar_app)
           end
-          run simple_app(:foo_app)
+          run SimpleApp.new(:foo_app)
         end
 
       @app.trace.should == clean_trace(%{

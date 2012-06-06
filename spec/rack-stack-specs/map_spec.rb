@@ -9,8 +9,8 @@ describe RackStack, "#map" do
 
   it "first #map to match path 'wins'" do
     @app = RackStack.new do
-      map("/"){ run simple_app(:first){ write "first" } }
-      map("/"){ run simple_app(:second){ write "second" } }
+      map("/"){ run SimpleApp.new(:first){ write "first" } }
+      map("/"){ run SimpleApp.new(:second){ write "second" } }
     end
 
     @app.trace.should == clean_trace(%{
@@ -28,11 +28,11 @@ describe RackStack, "#map" do
   it "using #use, #run, and #map" do
     @app = RackStack.new do
       use ResponseWrapperMiddleware
-      run simple_app(:default){ write "default" }
+      run SimpleApp.new(:default){ write "default" }
 
       map "/foo" do
         use ResponseWrapperMiddleware, "[foo]"
-        run simple_app(:foo){ write "foo" }
+        run SimpleApp.new(:foo){ write "foo" }
 
         # TODO add inner-map
       end
@@ -54,10 +54,10 @@ describe RackStack, "#map" do
   it "can have a name" do
     @app = RackStack.new do
       map :first, "/foo" do
-        run simple_app(:first){ write "first" }
+        run SimpleApp.new(:first){ write "first" }
       end
       map :second, "/foo" do
-        run simple_app(:second){ write "second" }
+        run SimpleApp.new(:second){ write "second" }
       end
     end
 
