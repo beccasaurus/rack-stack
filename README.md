@@ -41,15 +41,6 @@ RackStack offers a number of additional features:
 Conditional Logic
 -----------------
 
-```ruby
-RackStack.new do
-  use MyMiddleware, when: { path_info: /^\/about-us/ }
-  map "/admin" do
-    run AdminApp.new, when: ->(request){ request.path_info =~ /^\/about-us/ }
-  end
-  run MyApp.new, when: ->{ path_info =~ /^\/about-us/ }
-end
-```
 RackStack allows you to easily add conditional logic for `:when` to `#run`, `#use`, or `#map` a rack component.
 
 ```ruby
