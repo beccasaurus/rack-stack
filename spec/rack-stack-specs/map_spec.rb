@@ -31,10 +31,14 @@ describe RackStack, "#map" do
       run SimpleApp.new(:default){ write "default" }
 
       map "/foo" do
-        use ResponseWrapperMiddleware, "[foo]"
+        # The statements in here are intentionally out of order. We should 
+        # see #use, then #map, then #run because that's the correct order of the stack.
         run SimpleApp.new(:foo){ write "foo" }
-
-        # TODO add inner-map
+        use ResponseWrapperMiddleware, "[foo]"
+        map "/inner" do
+          run SimpleApp.new(:inner){ write "inner" }
+          use ResponseWrapperMiddleware, "[inner]"
+        end
       end
     end
 
@@ -42,6 +46,10 @@ describe RackStack, "#map" do
       use ResponseWrapperMiddleware
       map "/foo" do
         use ResponseWrapperMiddleware, "[foo]"
+        map "/inner" do
+          use ResponseWrapperMiddleware, "[inner]"
+          run SimpleApp<inner>
+        end
         run SimpleApp<foo>
       end
       run SimpleApp<default>
@@ -49,6 +57,7 @@ describe RackStack, "#map" do
 
     get("/").body.should == "*default*"
     get("/foo").body.should == "*[foo]foo[foo]*"
+    get("/foo/inner").body.should == "*[foo][inner]inner[inner][foo]*"
   end
 
   it "can have a name" do
