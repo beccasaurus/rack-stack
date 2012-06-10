@@ -12,7 +12,10 @@
 #     run SomeApp
 #   end
 class RackStack
+  include Component
   include IndifferentEval
+
+  # TODO RackStack#name (from Component) should be used for URLMap?
 
   # Returns new {RackStack} initialized using the provided arguments.
   # @note {RackStack#to_app} is called on the {RackStack} instance before it is returned.
@@ -108,7 +111,7 @@ class RackStack
   # @see RackStack.use 
   # @see RackStack.run
   # @see RackStack.map
-  attr_accessor :stack
+  attr_accessor :stack # TODO rename to :components (?) I think it makes it much more clear (A) what's in the damned thing (B) you can't mess with it unless you know what you're doing!
 
   # Default Rack application that will be called if no Rack endpoint is found for a request.
   #
@@ -118,9 +121,10 @@ class RackStack
 
   # Instantiates a new {RackStack}.
   # @param [#call] default_app Default application to `#call` if no other matching Rack endpoint is found ({#default_app}).
-  def initialize(default_app = nil, &block)
-    @default_app = default_app
+  def initialize(*args, &block)
+    @default_app = args.shift if args.first.respond_to?(:call)
     @stack = []
+    add_request_matcher args.first[:when] if args.first
     configure &block
   end
 
@@ -141,8 +145,20 @@ class RackStack
   # @raises NoMatchingApplicationError ... TODO yardoc for raise documentation?
   #
   # @note ... TODO ... if there's atleast 1 #map, 404/Not Found returned instead (for URLMap compatibility)
+  #
+  # TODO DRY this up with Responder#finish ... same logic ... where should the 404 bits really be anyway?  It's URLMap specific ...
   def call(env)
-    Responder.new(self, env).finish
+    if matches?(env)
+      Responder.new(self, env).finish
+    elsif default_app
+      default_app.call(env)
+    else
+      if stack.any? {|app| app.is_a? URLMap }
+        [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{env["PATH_INFO"]}"]]
+      else
+        raise NoMatchingApplicationError.new(:rack_stack => self, :env => env)
+      end
+    end
   end
 
   # Returns a Rack application/endpoint for this RackStack.

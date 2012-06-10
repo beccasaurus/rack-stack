@@ -5,23 +5,24 @@ class RackStack
   class RequestMatcher
     include IndifferentEval
 
-    attr_accessor :matcher, :trace
+    # @return [Proc, Hash<>, Array()] Either a Proc or a Hash or Array of pairs. # TODO yardoc-ify
+    attr_accessor :matcher
+    
+    # Boolean for whether or not this matcher should be 
+    # included in {RackStack#trace}.
+    attr_accessor :trace
 
     def initialize(matcher, trace = true)
       self.matcher = matcher
       self.trace = trace
     end
 
-    def result(env) # TODO change to #matches?(env) ... cuz it's nicer.
+    def matches?(env)
       request = Rack::Request.new(env)
 
       if @matcher.respond_to?(:call)
-        # -> { host =~ /twitter.com/ }
-        # ->(request){ request.host =~ /twitter.com/ }
         indifferent_eval request, &@matcher
       else
-        # { host: /twitter.com/ }
-        # ["host", /twitter.com/]
         @matcher.all? do |request_attribute, value|
           value === request.send(request_attribute)
         end

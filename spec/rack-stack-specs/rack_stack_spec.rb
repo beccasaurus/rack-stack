@@ -197,7 +197,29 @@ describe RackStack do
     value.should == :outer
   end
 
-  describe "as middleware" do
+  it "can have :when conditions (default_app is called if conditions not matched)" do
+    @app = RackStack.new :when => { :host => "foo.com" } do
+      run SimpleApp.new(:foo){ write "hi from foo.com app" }
+    end
+
+    # TODO this is going to include RackStack.new when: [{"host": ...}] soon!
+    @app.trace.should == clean_trace(%{
+      run SimpleApp<foo>
+    })
+
+    # When conditions aren't met, NoMatchingApplicationError is raised
+    expect { get("/") }.to raise_error(RackStack::NoMatchingApplicationError)
+    @app.default_app = SimpleApp.new { write "Hi from default app" }
+    get("/").body.should == "Hi from default app"
+
+    # Oh, and if there's a #map, ofcourse, it returns a 404 instead though.
+    @app.map("/bar-map"){ run SimpleApp.new { write "Hi from /bar-map" }}
+    get("/").body.should == "Hi from default app"
+    @app.default_app = nil
+    get("/").body.should == "Not Found: /"
+  end
+
+  context "as middleware" do
     it "use RackStack do" do
       # Use Rack::Builder to build a simple Rack application, using RackStack as a middleware.
       @app = Rack::Builder.new {

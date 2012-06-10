@@ -4,7 +4,10 @@ class RackStack
   # Represents a Rack URLMap (eg. added via #map)
   #
   # TODO even though this class is private, I feel like having the name URLMap might imply that you could actually try to use this class yourself as a URLMap implementation or something.  Maybe we should rename these classes back to being named after the statements to make it very clear that this is more like an AST for representing the stack layers than it is a standalone class ...
-  class URLMap < Application
+  class URLMap
+    include Component
+
+    # TODO keep URLMap (as Map) but inherit from RackStack?  override #trace?
 
     attr_accessor :location
     
@@ -16,8 +19,8 @@ class RackStack
       self.rack_stack = RackStack.new(&block)
 
       add_request_matcher options[:when] if options
-      add_request_matcher method(:path_matcher), :trace => false
-      add_request_matcher method(:host_matcher), :trace => false if uri.absolute?
+      add_request_matcher method(:path_matcher), false
+      add_request_matcher method(:host_matcher), false if uri.absolute?
     end
 
     def call(env)

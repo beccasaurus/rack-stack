@@ -2,7 +2,8 @@ class RackStack
 
   # @api private
   # Represents a Rack endpoint (eg. added via #run)
-  class Endpoint < Application
+  class Endpoint
+    include Component
 
     # The actual Rack application (instance) to run
     attr_accessor :application
