@@ -111,7 +111,7 @@ class RackStack
   # @see RackStack.use 
   # @see RackStack.run
   # @see RackStack.map
-  attr_accessor :stack # TODO rename to :components (?) I think it makes it much more clear (A) what's in the damned thing (B) you can't mess with it unless you know what you're doing!
+  attr_accessor :stack
 
   # Default Rack application that will be called if no Rack endpoint is found for a request.
   #

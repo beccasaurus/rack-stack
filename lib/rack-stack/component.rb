@@ -1,6 +1,6 @@
 class RackStack
 
-  # Defines behavior required for an object to be included in {RackStack#components}.
+  # Defines behavior required for an object to be included in {RackStack#stack}.
   module Component
 
     # Every RackStack::Component MAY have a name.
