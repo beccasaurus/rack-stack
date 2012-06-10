@@ -4,7 +4,7 @@ class RackStack
   # Walks down a stack, calling all Rack applications (middlewares/endpoints) that match this request.
   # Responsible for generating a single response for a request sent to RackStack.
   class StackResponder
-    def initialize(stack, default_app, env)
+    def initialize(stack, default_app, env) # TODO go ahead and couple this to RackStack ... we want it please!
       @stack = stack
       @default_app = default_app
       @env = env
@@ -36,7 +36,7 @@ class RackStack
         if @stack.any? {|app| app.is_a? URLMap } # TODO check this logic ... when do we want to return these 404s?
           [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{@env["PATH_INFO"]}"]]
         else
-          raise NoMatchingApplicationError.new(:stack => @stack, :env => @env)
+          raise NoMatchingApplicationError.new(:stack => @stack, :env => @env) # TODO this should have the RackStack
         end
       end
     end

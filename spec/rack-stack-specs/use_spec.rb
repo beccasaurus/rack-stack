@@ -19,10 +19,12 @@ describe RackStack, "#use" do
   end
 
   before do
+    # TODO de-align stuff like this (go thru and do this in a single commit) - why?  cleaner diffs.
     @app         = RackStack.new
     @hello_app   = SimpleApp.new {|req,resp| resp.write "Hello from #{req.path_info}"   }
     @goodbye_app = SimpleApp.new {|req,resp| resp.write "Goodbye from #{req.path_info}" }
     MiddlewareThatTracksAllInstances.instances.clear
+    @app.stack.should be_empty
   end
 
   it "MiddlewareClass" do
@@ -117,6 +119,8 @@ describe RackStack, "#use" do
     get("/foo").body.should == "Hello from /foo" # :when didn't hit this time, so no middleware
   end
 
+  it "RackStack, :when => <RequestMatcher> do (provides functionality similar to #map)" # TODO
+
   it "MiddlewareThatTracksAllInstances sample class works as expected" do
     MiddlewareThatTracksAllInstances.instances.should be_empty
 
@@ -144,5 +148,4 @@ describe RackStack, "#use" do
     get "/"
     MiddlewareThatTracksAllInstances.instances.length.should == 1 # no additional instances instantiated
   end
-
 end

@@ -24,31 +24,6 @@ describe RackStack do
     last_response.body.should == "Hello World"
   end
 
-  it "is a Rack middleware" do
-    # Use Rack::Builder to build a simple Rack application, using RackStack as a middleware.
-    @app = Rack::Builder.new {
-
-      # Use RackStack here, just like you would use any other middleware
-      use RackStack do
-
-        # If /rack-stack is requested, this route will get hit.
-        # Otherwise, RackStack will pass the #call through to the our application.
-        map "/rack-stack" do
-          run SimpleApp.new { write "Rack Stack!" }
-        end
-      end
-
-      # If our middleware doesn't return a response, this is the default application 
-      # that we'll fall back to.
-      run SimpleApp.new { write "Rack::Builder outer app" }
-
-    }.to_app
-
-    get("/").body.should == "Rack::Builder outer app"
-
-    get("/rack-stack").body.should == "Rack Stack!"
-  end
-
   it "Rack::Builder only supports instance_eval-ing its block" do
     @ivar_app = SimpleApp.new { write "Hi from @ivar app" }
 
@@ -85,14 +60,13 @@ describe RackStack do
     get("/").body.should == "Changed default app!"
   end
 
-  it "raises RackStack::NoMatchingApplicationError (with the RackStack and a stack trace)" do
-    @app.run SimpleApp.new, :when => { :path_info => /this won't match any paths we request/ }
-  
+  it "raises RackStack::NoMatchingApplicationError (with the RackStack)" do
     begin
       get "/some-path"
     rescue Exception => ex
       exception = ex
     ensure
+      # TODO this should have the rack_stack instance (instead of just the stack)
       exception.should be_an_instance_of RackStack::NoMatchingApplicationError
       exception.stack.should == @app.stack
       exception.env["PATH_INFO"].should == "/some-path"
@@ -222,5 +196,34 @@ describe RackStack do
     value = nil
     @app.outer { value = name }
     value.should == :outer
+  end
+
+  describe "as middleware" do
+    it "use RackStack do" do
+      # Use Rack::Builder to build a simple Rack application, using RackStack as a middleware.
+      @app = Rack::Builder.new {
+
+        # Use RackStack here, just like you would use any other middleware
+        use RackStack do
+
+          # If /rack-stack is requested, this route will get hit.
+          # Otherwise, RackStack will pass the #call through to the our application.
+          map "/rack-stack" do
+            run SimpleApp.new { write "Rack Stack!" }
+          end
+        end
+
+        # If our middleware doesn't return a response, this is the default application 
+        # that we'll fall back to.
+        run SimpleApp.new { write "Rack::Builder outer app" }
+
+      }.to_app
+
+      get("/").body.should == "Rack::Builder outer app"
+
+      get("/rack-stack").body.should == "Rack Stack!"
+    end
+
+    it "use RackStack, :when => <RequestMatcher> do" # TODO
   end
 end

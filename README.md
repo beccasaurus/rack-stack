@@ -42,6 +42,13 @@ RackStack offers a number of additional features:
  1. Stack Manipulation
  1. Use as Middleware
 
+Uses Cases
+----------
+
+`TODO` reference sample use-cases (actual code / specs)
+
+`TODO` add Rack::Proxy example to artifice example (for using real HTTP)
+
 Conditional Logic
 -----------------
 
@@ -66,7 +73,7 @@ end
 Named Applications
 ------------------
 
-TODO - Named Applications section
+`TODO` Named Applications section
 
  - add names ...
  - remove ...
@@ -75,7 +82,7 @@ TODO - Named Applications section
 Stack Manipulation
 ------------------
 
-TODO - Stack Manipulation section
+`TODO` Stack Manipulation section
 
 A `RackStack` may be manipulated at runtime.
 
@@ -124,7 +131,7 @@ Rack::Builder.new {
   use SomeMiddleware
 
   # RackStack can be used as a middleware, alongside your existing Rack components
-  use RackStack.new when: { host: "foo.com" } do # TODO implement this (request matchers on the whole RackStack)
+  use RackStack.new when: { host: "foo.com" } do
     use AnotherMiddleware
     run SomeApplication.new
   end

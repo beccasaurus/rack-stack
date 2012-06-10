@@ -7,6 +7,66 @@ describe RackStack, "#map" do
     Rack::Lint.new @app
   end
 
+  before do
+    @app = RackStack.new
+    @app.stack.should be_empty
+  end
+
+  # For Rack::Builder compatibility.
+  it "if RackStack includes at least 1 #map (URLMap), returns 404/Not Found (instead of raising NoMatchingApplicationError)" do
+    @app.map "/foo" do
+      run SimpleApp.new { write "hi from /foo" }
+    end
+
+    get("/foo").body.should == "hi from /foo"
+
+    get "/wrong-path"
+    last_response.body.should == "Not Found: /wrong-path"
+    last_response.status.should == 404
+    last_response.content_type.should == "text/plain"
+    last_response["X-Cascade"].should == "pass"
+
+    # Note: if there's a default_app, the RackStack falls back to that.
+    @app.default_app = SimpleApp.new { write "hi from default_app" }
+    get("/wrong-path").body.should == "hi from default_app"
+  end
+
+  it "'/path'" do
+    @app.map "/path" do
+      run SimpleApp.new(:the_app){ write "Hello from the app" }
+    end
+
+    @app.trace.should == clean_trace(%{
+      map "/path" do
+        run SimpleApp<the_app>
+      end
+    })
+
+    get("/path").body.should == "Hello from the app"
+  end
+
+  it "'/path', :when => <RequestMatcher>" do
+    @app.map "/path", :when => { :host => "foo.com" } do
+      run SimpleApp.new(:foo_app){ write "Hello from foo.com/path" }
+    end
+    @app.map "/path", :when => { :host => "bar.com" } do
+      run SimpleApp.new(:bar_app){ write "Hello from bar.com/path" }
+    end
+
+    @app.trace.should == clean_trace(%{
+      map "/path", when: [{:host=>"foo.com"}] do
+        run SimpleApp<foo_app>
+      end
+      map "/path", when: [{:host=>"bar.com"}] do
+        run SimpleApp<bar_app>
+      end
+    })
+
+    get("http://foo.com/path").body.should == "Hello from foo.com/path"
+    get("http://bar.com/path").body.should == "Hello from bar.com/path"
+    get("http://DIFF.com/path").body.should == "Not Found: /path"
+  end
+
   it "first #map to match path 'wins'" do
     @app = RackStack.new do
       map("/"){ run SimpleApp.new(:first){ write "first" } }
