@@ -6,15 +6,19 @@ RackStack
 Installation
 ------------
 
+Using Bundler:
+
 ```ruby
 gem "rack-stack"
 ```
+
+Or just `gem install rack-rack`
 
 Usage
 -----
 
 ```ruby
-require "rack/stack"
+require "rack/stack" # or "rack-stack"
 
 rack_stack = RackStack.new do
   use MyMiddleware
@@ -62,14 +66,16 @@ end
 Named Applications
 ------------------
 
-add names ...
+TODO - Named Applications section
 
-remove ...
-
-get access to...
+ - add names ...
+ - remove ...
+ - get access to...
 
 Stack Manipulation
 ------------------
+
+TODO - Stack Manipulation section
 
 A `RackStack` may be manipulated at runtime.
 
@@ -87,12 +93,21 @@ rack_stack.map "/foo" do
   run FooApp.new
 end
 
-# and feel free to #remove named applications
+# Feel free to #remove named applications
 rack_stack.remove :my_middleware
 
-# or manipulate the stack Array directly (with the help of RackStack::use/run/map)
+# You can also manipulate the stack Array directly.
+#
+# For example, if you want to put a #use statement *first*, you can:
+rack_stack.stack.unshift RackStack.use(:my_middleware, SomeMiddleware)
+
+# ...
+
+# 
 rack_stack.stack.insert 1, RackStack.use(:my_middleware, SomeMiddleware)
 ```
+
+ - RackStack.use/map/run must be used to create the object to manually insert into RackStack#stack
 
 Use as Middleware
 -----------------
@@ -103,11 +118,13 @@ not as a middleware.
 RackStack can be run as either a Rack endpoint or a Rack middleware.
 
 ```ruby
+# Example of using RackStack as a middleware (app built using an ordinary Rack::Builder)
 Rack::Builder.new {
+
   use SomeMiddleware
 
   # RackStack can be used as a middleware, alongside your existing Rack components
-  use RackStack.new do
+  use RackStack.new when: { host: "foo.com" } do # TODO implement this (request matchers on the whole RackStack)
     use AnotherMiddleware
     run SomeApplication.new
   end
@@ -116,6 +133,7 @@ Rack::Builder.new {
   run RackStack.new do
     run AnotherApplication.new  
   end
+
 }.to_app
 ```
 
