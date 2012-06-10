@@ -19,6 +19,10 @@ class RackStack
       @request_matchers ||= []
     end
 
+    def matchers_to_trace
+      request_matchers.select(&:trace).map(&:matcher)
+    end
+
     # Returns true if all {#request_matchers} match the request.
     def matches?(env)
       request_matchers.all? {|matcher| matcher.matches?(env) }

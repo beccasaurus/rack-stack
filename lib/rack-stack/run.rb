@@ -26,12 +26,10 @@ class RackStack
     end
 
     def trace
-      matchers = request_matchers.select(&:trace).map(&:matcher)
-
       traced = "run"
       traced << " #{name.inspect}," if name
       traced << " #{application}"
-      traced << ", when: #{matchers.inspect}" if matchers.any?
+      traced << ", when: #{matchers_to_trace.inspect}" if matchers_to_trace.any?
       traced << "\n"
       traced
     end

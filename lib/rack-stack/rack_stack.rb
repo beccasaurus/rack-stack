@@ -212,11 +212,9 @@ class RackStack
   #   end
   #
   def trace
-    matchers = request_matchers.select(&:trace).map(&:matcher) # TODO every Component uses this ... make a descriptive shortcut?
-
     traced = "RackStack.new"
     traced << " default_app: #{default_app.inspect}" if default_app
-    traced << " when: #{matchers.inspect}" if matchers.any?
+    traced << " when: #{matchers_to_trace.inspect}" if matchers_to_trace.any?
     traced << " do\n"
     traced << stack.map(&:trace).join.gsub(/^/, "  ")
     traced << "end\n"
