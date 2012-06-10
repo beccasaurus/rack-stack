@@ -1,9 +1,11 @@
 class RackStack
 
-  # Raised when a RackStack finds no matching application for a request.
+  # Raised when a {RackStack} finds no matching application for a request.
   #
-  # Not raised if RackStack has default_app or includes a URLMap (for
-  # Rack::Buidler compatibility).
+  # Not raised if RackStack has {RackStack#default_app} or includes a `#map`
+  # statement.
+  #
+  # @see RackStack#call
   class NoMatchingApplicationError < StandardError
 
     # The {RackStack} dispatched to for the request that caused this

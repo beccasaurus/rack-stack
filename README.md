@@ -144,5 +144,7 @@ Rack::Builder.new {
 }.to_app
 ```
 
+`TODO` - add performance benchmark scripts (and maybe specs) ... find out if it's OK for real-world usage ... optimize ... generate numbers on what the overhead is like of having your middlewares hosted in a RackStack versus a regular application with middleware constructed normally.
+
 [Rack::Builder]: http://rack.rubyforge.org/doc/classes/Rack/Builder.html
 [compatibility]: https://github.com/remi/rack-stack/tree/master/spec/rack-builder-compatibility

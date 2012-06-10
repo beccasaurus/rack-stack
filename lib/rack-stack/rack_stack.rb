@@ -137,6 +137,10 @@ class RackStack
   end
 
   # Standard Rack application `#call` implementation.
+  #
+  # @raises NoMatchingApplicationError ... TODO yardoc for raise documentation?
+  #
+  # @note ... TODO ... if there's atleast 1 #map, 404/Not Found returned instead (for URLMap compatibility)
   def call(env)
     Responder.new(self, env).finish
   end

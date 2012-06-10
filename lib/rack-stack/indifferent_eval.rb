@@ -1,7 +1,14 @@
 class RackStack
+
+  # @api private
+  # Provides {#indifferent_eval}.
   module IndifferentEval
 
-    # If no arguments passed, instance eval, else yield to block.
+    # If no arguments are passed to the given block, then the
+    # block will be instance_eval'd against the given object (or self).
+    #
+    # If an argument is passed, however, then the given object (or self)
+    # will be yielded to the given block.
     def indifferent_eval(object = self, &block)
       if block
         if block.arity <= 0

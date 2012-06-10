@@ -2,8 +2,13 @@ class RackStack
 
   # @api private
   # Represents a Rack URLMap (eg. added via #map)
+  #
+  # TODO even though this class is private, I feel like having the name URLMap might imply that you could actually try to use this class yourself as a URLMap implementation or something.  Maybe we should rename these classes back to being named after the statements to make it very clear that this is more like an AST for representing the stack layers than it is a standalone class ...
   class URLMap < Application
-    attr_accessor :location, :rack_stack
+
+    attr_accessor :location
+    
+    attr_accessor :rack_stack
 
     def initialize(name, location, options = nil, &block)
       self.name = name
@@ -31,7 +36,7 @@ class RackStack
       traced << " #{location.inspect}"
       traced << ", when: #{matchers.inspect}" if matchers.any?
       traced << " do\n"
-      traced << rack_stack.trace.gsub(/^/, "  ") # TODO share input?
+      traced << rack_stack.trace.gsub(/^/, "  ")
       traced << "end\n"
       traced
     end
