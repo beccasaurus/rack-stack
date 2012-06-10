@@ -1,5 +1,6 @@
 class RackStack
 
+  # TODO rename to just: RackStack::Responder.
   # @api private
   # Walks down a stack, calling all Rack applications (middlewares/endpoints) that match this request.
   # Responsible for generating a single response for a request sent to RackStack.
