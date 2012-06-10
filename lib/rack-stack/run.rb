@@ -1,17 +1,23 @@
 class RackStack
 
   # @api private
+  #
+  # @example
+  #   run RackApp.new
+  # @example
+  #   run RackApp.new, when: { path_info: "/foo" }
+  # @example
+  #   run :name, RackApp.new, when: { path_info: "/foo" }
   class Run
     include Component
 
     # The actual Rack application (instance) to run
     attr_accessor :application
 
-    def initialize(name, application, options = nil)
-      self.name = name
-      self.application = application
-
-      add_request_matcher options[:when] if options
+    def initialize(*args)
+      self.name = args.shift if args.first.is_a?(Symbol)
+      self.application = args.shift
+      add_request_matcher args.first[:when] if args.first
     end
 
     # Calls the Rack application

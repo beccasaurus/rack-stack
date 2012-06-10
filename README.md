@@ -106,15 +106,15 @@ rack_stack.remove :my_middleware
 # You can also manipulate the stack Array directly.
 #
 # For example, if you want to put a #use statement *first*, you can:
-rack_stack.stack.unshift RackStack.use(:my_middleware, SomeMiddleware)
+rack_stack.stack.unshift RackStack::Use.new(:my_middleware, SomeMiddleware)
 
 # ...
 
 # 
-rack_stack.stack.insert 1, RackStack.use(:my_middleware, SomeMiddleware)
+rack_stack.stack.insert 1, RackStack::Use.new(:my_middleware, SomeMiddleware)
 ```
 
- - RackStack.use/map/run must be used to create the object to manually insert into RackStack#stack
+ - Use/Map/Run must be used to create the object to manually insert into RackStack#stack
 
 Use as Middleware
 -----------------

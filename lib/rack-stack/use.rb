@@ -1,15 +1,28 @@
 class RackStack
 
   # @api private
+  #
+  # @example
+  #   use MiddlewareClass
+  # @example
+  #   use MiddlewareClass, when: { path_info: "/foo" }
+  # @example
+  #   use :name, MiddlewareClass, when: { path_info: "/foo" }
+  # @example
+  #   use MiddlewareClass, arg1, arg2 do
+  #     # this block and the arguments will be passed 
+  #     # along to MiddlewareClass's constructor
+  #   end
+  #
   class Use
     include Component
 
     attr_accessor :middleware_class, :arguments, :block, :middleware, :application
 
-    def initialize(name, middleware_class, *arguments, &block)
-      self.name = name
-      self.middleware_class = middleware_class
-      self.arguments = arguments
+    def initialize(*args, &block)
+      self.name = args.shift if args.first.is_a?(Symbol)
+      self.middleware_class = args.shift
+      self.arguments = args
       self.block = block
       read_options_from_arguments!
       inner_app = lambda {|env| application.call(env) }

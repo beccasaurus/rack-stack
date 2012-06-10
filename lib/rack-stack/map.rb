@@ -1,6 +1,13 @@
 class RackStack
 
   # @api private
+  #
+  # @example
+  #   map "/path", when: { host: "some-host.com" } do
+  #     use InnerMiddleware
+  #     run CustomInnerApp.new, when: ->{ path_info =~ /custom/ }
+  #     run InnerApp.new
+  #   end
   class Map
     include Component
 
@@ -10,12 +17,13 @@ class RackStack
     
     attr_accessor :rack_stack
 
-    def initialize(name, location, options = nil, &block)
-      self.name = name
-      self.location = location
+    #def initialize(name, location, options = nil, &block)
+    def initialize(*args, &block)
+      self.name = args.shift if args.first.is_a?(Symbol)
+      self.location = args.shift
       self.rack_stack = RackStack.new(&block)
 
-      add_request_matcher options[:when] if options
+      add_request_matcher args.first[:when] if args.first
       add_request_matcher method(:path_matcher), false
       add_request_matcher method(:host_matcher), false if uri.absolute?
     end

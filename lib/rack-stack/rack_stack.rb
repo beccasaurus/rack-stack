@@ -54,66 +54,14 @@ class RackStack
     end
   end
 
-  # TODO Use.new instead?  if so, move argument logic into Use.
-  # Returns {RackStack} object representing a Rack middleware that can be added to the {#stack}.
-  #
-  # @example
-  #   use MiddlewareClass
-  # @example
-  #   use MiddlewareClass, when: { path_info: "/foo" }
-  # @example
-  #   use :name, MiddlewareClass, when: { path_info: "/foo" }
-  # @example
-  #   use MiddlewareClass, arg1, arg2 do
-  #     # this block and the arguments will be passed 
-  #     # along to MiddlewareClass's constructor
-  #   end
-  def self.use(*args, &block)
-    name = args.shift if args.first.is_a?(Symbol)
-    klass = args.shift
-    Use.new(name, klass, *args, &block)
-  end
-
-  # TODO Run.new instead?  if so, move argument logic into Run.
-  # Returns object representing a Rack endpoint that can be added to the {#stack}.
-  #
-  # @example
-  #   run RackApp.new
-  # @example
-  #   run RackApp.new, when: { path_info: "/foo" }
-  # @example
-  #   run :name, RackApp.new, when: { path_info: "/foo" }
-  def self.run(*args)
-    name = args.shift if args.first.is_a?(Symbol)
-    application = args.shift
-    options = args.shift
-    Run.new(name, application, options)
-  end
-
-  # TODO Map.new instead?  if so, move argument logic into Map.
-  # Returns object representing a Rack URLMap that can be added to the #stack
-  #
-  # @example
-  #   map "/path", when: { host: "some-host.com" } do
-  #     use InnerMiddleware
-  #     run CustomInnerApp.new, when: ->{ path_info =~ /custom/ }
-  #     run InnerApp.new
-  #   end
-  def self.map(*args, &block)
-    name = args.shift if args.first.is_a?(Symbol)
-    path = args.shift
-    options = args.shift
-    Map.new(name, path, options, &block)
-  end
-
   # Returns an Array of objects representing Rack applications/components.
   #
-  # @note This Array may be manipulated manually, but all objects in the 
-  #   stack must be wrapped via {RackStack.use}, {RackStack.run}, or {RackStack.map}.
+  # @note This Array may be manipulated manually, but only {Use}, {Run}, and
+  #   {Map} objects are allowed.
   #
-  # @see RackStack.use 
-  # @see RackStack.run
-  # @see RackStack.map
+  # @see Use 
+  # @see Run
+  # @see Map
   attr_accessor :stack
 
   # Default Rack application that will be called if no Rack endpoint is found for a request.
@@ -176,7 +124,7 @@ class RackStack
   #
   # See {RackStack.use RackStack::use} for parameter documentation.
   def use(*args, &block)
-    add_to_stack self.class.use(*args, &block)
+    add_to_stack Use.new(*args, &block)
   end
 
   # Adds a nested {RackStack} to the {#stack} that is only evaluated when the given
@@ -184,14 +132,14 @@ class RackStack
   #
   # See {RackStack.map RackStack::map} for parameter documentation.
   def map(*args, &block)
-    add_to_stack self.class.map(*args, &block)
+    add_to_stack Map.new(*args, &block)
   end
 
   # Add the provided Rack endpoint to the {#stack}.
   #
   # See {RackStack.run RackStack::run} for parameter documentation.
   def run(*args)
-    add_to_stack self.class.run(*args)
+    add_to_stack Run.new(*args)
   end
 
   # Returns the Rack object in this {RackStack} with the given name, if any.
