@@ -54,16 +54,6 @@ class RackStack
     end
   end
 
-  # Returns an Array of objects representing Rack applications/components.
-  #
-  # @note This Array may be manipulated manually, but only {Use}, {Run}, and
-  #   {Map} objects are allowed.
-  #
-  # @see Use 
-  # @see Run
-  # @see Map
-  attr_accessor :stack
-
   # Default Rack application that will be called if no Rack endpoint is found for a request.
   #
   # @note When RackStack is used as a Rack middleware, this is the application that 
@@ -73,8 +63,7 @@ class RackStack
   # Instantiates a new {RackStack}.
   # @param [#call] default_app Default application to `#call` if no other matching Rack endpoint is found ({#default_app}).
   def initialize(*args, &block)
-    @default_app = args.shift if args.first.respond_to?(:call)
-    @stack = []
+    self.default_app = args.shift if args.first.respond_to?(:call)
     add_request_matcher args.first[:when] if args.first
     configure &block
   end
@@ -91,13 +80,25 @@ class RackStack
     indifferent_eval &block
   end
 
+  # Returns an Array of objects representing Rack applications/components.
+  #
+  # @note This Array may be manipulated manually, but only {Use}, {Run}, and
+  #   {Map} objects are allowed.
+  #
+  # @see Use 
+  # @see Run
+  # @see Map
+  def stack
+    @stack ||= []
+  end
+
   # Standard Rack application `#call` implementation.
   #
   # @raises NoMatchingApplicationError ... TODO yardoc for raise documentation?
   #
   # @note ... TODO ... if there's atleast 1 #map, 404/Not Found returned instead (for URLMap compatibility)
   #
-  # TODO DRY this up with Responder#finish ... same logic ... where should the 404 bits really be anyway?  It's URLMap specific ...
+  # TODO DRY this up with Responder#finish (?) ... same logic ... where should the 404 bits really be anyway?  It's URLMap specific ...
   def call(env)
     if matches?(env)
       Responder.new(self, env).finish
@@ -172,7 +173,7 @@ class RackStack
 
   # Removes every Rack application/component in the {#stack} with the given name.
   def remove(name)
-    @stack.reject! {|app| name == app.name }
+    stack.reject! {|app| name == app.name }
     nested_rack_stacks.each {|rack_stack| rack_stack.remove(name) }
   end
 
@@ -213,7 +214,7 @@ class RackStack
   #   end
   #
   def trace
-    @stack.map(&:trace).join
+    stack.map(&:trace).join
   end
 
   private
@@ -221,23 +222,23 @@ class RackStack
   def add_to_stack(app)
     case app
     when Run
-      @stack.push app
+      stack.push app
     when Map
-      @stack.insert index_for_next_urlmap(app), app
+      stack.insert index_for_next_urlmap(app), app
     when Use
-      if non_middleware = @stack.index {|a| not a.is_a? Use }
-        @stack.insert non_middleware, app
+      if non_middleware = stack.index {|a| not a.is_a? Use }
+        stack.insert non_middleware, app
       else
-        @stack.push app
+        stack.push app
       end
     end
   end
 
   def get_app_by_name(name)
-    if app = @stack.detect {|app| name == app.name }
+    if app = stack.detect {|app| name == app.name }
       case app
       when Use then return app.middleware
-      when Map then return app.rack_stack
+      when Map then return app
       when Run then return app.application
       end
     end
@@ -248,18 +249,17 @@ class RackStack
   end
 
   def index_for_next_urlmap(app)
-    @stack.each_with_index do |stack_app, i|
+    stack.each_with_index do |stack_app, i|
       if stack_app.is_a? Run
         return i
       elsif stack_app.is_a? Map
         return i if app.location.length > stack_app.location.length
       end
     end
-    @stack.length
+    stack.length
   end
 
   def nested_rack_stacks
-    # TODO @stack.select {|component| component.is_a? RackStack } ... once Map < RackStack (?)
-    @stack.select {|component| component.is_a?(Map) }.map {|map| map.rack_stack }
+    stack.select {|component| component.is_a?(RackStack) }
   end
 end

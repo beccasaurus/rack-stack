@@ -8,20 +8,15 @@ class RackStack
   #     run CustomInnerApp.new, when: ->{ path_info =~ /custom/ }
   #     run InnerApp.new
   #   end
-  class Map
-    include Component
-
-    # TODO keep URLMap (as Map) but inherit from RackStack?  override #trace?
+  class Map < RackStack
 
     attr_accessor :location
     
-    attr_accessor :rack_stack
-
-    #def initialize(name, location, options = nil, &block)
     def initialize(*args, &block)
       self.name = args.shift if args.first.is_a?(Symbol)
       self.location = args.shift
-      self.rack_stack = RackStack.new(&block)
+
+      configure &block
 
       add_request_matcher args.first[:when] if args.first
       add_request_matcher method(:path_matcher), false
@@ -32,7 +27,7 @@ class RackStack
       env["SCRIPT_NAME"] = env["SCRIPT_NAME"] + uri.path.chomp("/")
       env["PATH_INFO"] = matching_path env["PATH_INFO"]
 
-      rack_stack.call(env)
+      Responder.new(self, env).finish
     end
 
     def trace
@@ -44,7 +39,7 @@ class RackStack
       traced << " #{location.inspect}"
       traced << ", when: #{matchers.inspect}" if matchers.any?
       traced << " do\n"
-      traced << rack_stack.trace.gsub(/^/, "  ")
+      traced << super.gsub(/^/, "  ")
       traced << "end\n"
       traced
     end
