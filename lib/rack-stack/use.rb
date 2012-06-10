@@ -40,8 +40,7 @@ class RackStack
     def trace
       matchers = request_matchers.select(&:trace).map(&:matcher)
 
-      traced = ""
-      traced << "use"
+      traced = "use"
       traced << " #{name.inspect}," if name
       traced << " #{middleware_class}"
       traced << ", #{arguments.map(&:inspect).join(', ')}" if arguments.any?

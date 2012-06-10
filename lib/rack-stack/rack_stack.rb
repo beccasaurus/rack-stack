@@ -15,8 +15,6 @@ class RackStack
   include Component
   include IndifferentEval
 
-  # TODO RackStack#name (from Component) should be used for URLMap?
-
   # Returns new {RackStack} initialized using the provided arguments.
   # @note {RackStack#to_app} is called on the {RackStack} instance before it is returned.
   def self.app(default_app = nil, &block)
@@ -214,7 +212,15 @@ class RackStack
   #   end
   #
   def trace
-    stack.map(&:trace).join
+    matchers = request_matchers.select(&:trace).map(&:matcher) # TODO every Component uses this ... make a descriptive shortcut?
+
+    traced = "RackStack.new"
+    traced << " default_app: #{default_app.inspect}" if default_app
+    traced << " when: #{matchers.inspect}" if matchers.any?
+    traced << " do\n"
+    traced << stack.map(&:trace).join.gsub(/^/, "  ")
+    traced << "end\n"
+    traced
   end
 
   private

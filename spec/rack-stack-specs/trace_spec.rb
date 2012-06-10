@@ -13,48 +13,71 @@ describe RackStack, "#trace" do
   end
 
   it "no components" do
-    @app.trace.should == ""
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        end
+    })
   end
 
   it "run @app" do
     @app.run @example_app
-    @app.trace.should == "run SimpleApp<example_app>\n"
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        run SimpleApp<example_app>
+      end
+    })
   end
 
   it "run @app, when: <RequestMatcher>" do
     @app.run @example_app, :when => { :host => /twitter.com/ }
-    @app.trace.should == "run SimpleApp<example_app>, when: [{:host=>/twitter.com/}]\n"
+
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        run SimpleApp<example_app>, when: [{:host=>/twitter.com/}]
+      end
+    })
   end
 
   it "use MiddlewareClass" do
     @app.use MiddlewareToTrace
-    @app.trace.should == "use MiddlewareToTrace\n"
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        use MiddlewareToTrace
+      end
+    })
   end
 
   it "use MiddlewareClass, arg1, :some => 'options'" do
     @app.use(MiddlewareToTrace, 123.45, :some => :options){ }
-    @app.trace.start_with?("use MiddlewareToTrace, 123.45, {:some=>:options}, &#<Proc:").should be_true
+    @app.trace.should =~ /use MiddlewareToTrace, 123.45, {:some=>:options}, &#<Proc:/
   end
 
   it "use MiddlewareClass && run @app" do
     @app.use MiddlewareToTrace
     @app.run @example_app
-    @app.trace.should == "use MiddlewareToTrace\nrun SimpleApp<example_app>\n"
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        use MiddlewareToTrace
+        run SimpleApp<example_app>
+      end
+    })
   end
 
   it "use MiddlewareClass :when => {} && run @app :when => {}" do
     @app.run @example_app, :when => { :host => /twitter.com/ }
     @app.use MiddlewareToTrace, :when => { :host => "www.foo.com" }
     @app.trace.should == clean_trace(%{
-      use MiddlewareToTrace, when: [{:host=>\"www.foo.com\"}]
-      run SimpleApp<example_app>, when: [{:host=>/twitter.com/}]
+      RackStack.new do
+        use MiddlewareToTrace, when: [{:host=>\"www.foo.com\"}]
+        run SimpleApp<example_app>, when: [{:host=>/twitter.com/}]
+      end
     })
   end
 
   it "use MiddlewareClass, arg1, :arg2 => true, do ... end" do
     @app.use MiddlewareToTrace, 123.45, ["hello", "world"], :some => :options, :when => { :host => /twitter.com/ } do end
-    @app.trace.start_with?("use MiddlewareToTrace, 123.45, [\"hello\", \"world\"], {:some=>:options}, &#<Proc").should be_true
-    @app.trace.end_with?(">, when: [{:host=>/twitter.com/}]\n").should be_true
+    @app.trace.should =~ /use MiddlewareToTrace, 123\.45, \[\"hello\", \"world\"], {:some=>:options}, &#<Proc/
+    @app.trace.should =~ %r(>, when: \[{:host=>/twitter.com/}])
   end
 
   describe "map '/foo', :when => {}" do
@@ -64,8 +87,10 @@ describe RackStack, "#trace" do
       end
 
       @app.trace.should == clean_trace(%{
-        map "/foo", when: [{:host=>/twitter.com/}] do
-          run SimpleApp<foo_app>, when: [{:path_info=>"/foo"}]
+        RackStack.new do
+          map "/foo", when: [{:host=>/twitter.com/}] do
+            run SimpleApp<foo_app>, when: [{:path_info=>"/foo"}]
+          end
         end
       }, :indent => 8)
     end
@@ -78,8 +103,10 @@ describe RackStack, "#trace" do
       end
 
       @app.trace.should == clean_trace(%{
-        map "/foo" do
-          run SimpleApp<foo_app>
+        RackStack.new do
+          map "/foo" do
+            run SimpleApp<foo_app>
+          end
         end
       }, :indent => 8)
     end
@@ -94,12 +121,14 @@ describe RackStack, "#trace" do
         end
 
       @app.trace.should == clean_trace(%{
-        map "/foo" do
-          map "/bar" do
-            run SimpleApp<bar_app>
+        RackStack.new do
+          map "/foo" do
+            map "/bar" do
+              run SimpleApp<bar_app>
+            end
+            run SimpleApp<foo_app>
           end
-          run SimpleApp<foo_app>
-        end 
+        end
       }, :indent => 8)
       end
     end

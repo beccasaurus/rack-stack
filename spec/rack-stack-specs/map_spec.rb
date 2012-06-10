@@ -37,8 +37,10 @@ describe RackStack, "#map" do
     end
 
     @app.trace.should == clean_trace(%{
-      map "/path" do
-        run SimpleApp<the_app>
+      RackStack.new do
+        map "/path" do
+          run SimpleApp<the_app>
+        end
       end
     })
 
@@ -54,11 +56,13 @@ describe RackStack, "#map" do
     end
 
     @app.trace.should == clean_trace(%{
-      map "/path", when: [{:host=>"foo.com"}] do
-        run SimpleApp<foo_app>
-      end
-      map "/path", when: [{:host=>"bar.com"}] do
-        run SimpleApp<bar_app>
+      RackStack.new do
+        map "/path", when: [{:host=>"foo.com"}] do
+          run SimpleApp<foo_app>
+        end
+        map "/path", when: [{:host=>"bar.com"}] do
+          run SimpleApp<bar_app>
+        end
       end
     })
 
@@ -74,11 +78,13 @@ describe RackStack, "#map" do
     end
 
     @app.trace.should == clean_trace(%{
-      map "/" do
-        run SimpleApp<first>
-      end
-      map "/" do
-        run SimpleApp<second>
+      RackStack.new do
+        map "/" do
+          run SimpleApp<first>
+        end
+        map "/" do
+          run SimpleApp<second>
+        end
       end
     })
 
@@ -103,16 +109,18 @@ describe RackStack, "#map" do
     end
 
     @app.trace.should == clean_trace(%{
-      use ResponseWrapperMiddleware
-      map "/foo" do
-        use ResponseWrapperMiddleware, "[foo]"
-        map "/inner" do
-          use ResponseWrapperMiddleware, "[inner]"
-          run SimpleApp<inner>
+      RackStack.new do
+        use ResponseWrapperMiddleware
+        map "/foo" do
+          use ResponseWrapperMiddleware, "[foo]"
+          map "/inner" do
+            use ResponseWrapperMiddleware, "[inner]"
+            run SimpleApp<inner>
+          end
+          run SimpleApp<foo>
         end
-        run SimpleApp<foo>
+        run SimpleApp<default>
       end
-      run SimpleApp<default>
     })
 
     get("/").body.should == "*default*"
@@ -131,11 +139,13 @@ describe RackStack, "#map" do
     end
 
     @app.trace.should == clean_trace(%{
-      map :first, "/foo" do
-        run SimpleApp<first>
-      end
-      map :second, "/foo" do
-        run SimpleApp<second>
+      RackStack.new do
+        map :first, "/foo" do
+          run SimpleApp<first>
+        end
+        map :second, "/foo" do
+          run SimpleApp<second>
+        end
       end
     })
 

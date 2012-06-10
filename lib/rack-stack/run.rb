@@ -28,8 +28,7 @@ class RackStack
     def trace
       matchers = request_matchers.select(&:trace).map(&:matcher)
 
-      traced = ""
-      traced << "run"
+      traced = "run"
       traced << " #{name.inspect}," if name
       traced << " #{application}"
       traced << ", when: #{matchers.inspect}" if matchers.any?

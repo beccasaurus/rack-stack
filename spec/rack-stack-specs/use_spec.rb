@@ -30,7 +30,11 @@ describe RackStack, "#use" do
   it "MiddlewareClass" do
     @app.use ResponseWrapperMiddleware
 
-    @app.trace.should == clean_trace("use ResponseWrapperMiddleware")
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        use ResponseWrapperMiddleware
+      end
+    })
 
     @app.run @hello_app
     get("/").body.should == "*Hello from /*"
@@ -39,7 +43,11 @@ describe RackStack, "#use" do
   it "MiddlewareClass, *arguments" do
     @app.use ResponseWrapperMiddleware, "%"
 
-    @app.trace.should == clean_trace('use ResponseWrapperMiddleware, "%"')
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        use ResponseWrapperMiddleware, "%"
+      end
+    })
 
     @app.run @hello_app
     get("/").body.should == "%Hello from /%"
@@ -48,7 +56,7 @@ describe RackStack, "#use" do
   it "MiddlewareClass, *arguments, &block" do
     @app.use ResponseWrapperMiddleware, "%" do end
 
-    @app.trace.start_with?('use ResponseWrapperMiddleware, "%", &#<Proc:').should be_true
+    @app.trace.should =~ /use ResponseWrapperMiddleware, "%", &#<Proc:/
 
     @app.run @hello_app
     get("/").body.should == "%Hello from /%"
@@ -57,7 +65,11 @@ describe RackStack, "#use" do
   it "MiddlewareClass, :when => <RequestMatcher>" do
     @app.use ResponseWrapperMiddleware, :when => { :path_info => "/" }
 
-    @app.trace.should == clean_trace('use ResponseWrapperMiddleware, when: [{:path_info=>"/"}]')
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        use ResponseWrapperMiddleware, when: [{:path_info=>"/"}]
+      end
+    })
 
     @app.run @hello_app
     get("/").body.should == "*Hello from /*"
@@ -67,8 +79,8 @@ describe RackStack, "#use" do
   it "MiddlewareClass, *arguments, :arg1 => true, :when => <RequestMatcher>, &block" do
     @app.use ResponseWrapperMiddleware, "%", :times => 3, :when => { :path_info => "/" } do end
 
-    @app.trace.start_with?('use ResponseWrapperMiddleware, "%", {:times=>3}, &#<Proc:').should be_true
-    @app.trace.end_with?(", when: [{:path_info=>\"/\"}]\n").should be_true
+    @app.trace.should =~ /use ResponseWrapperMiddleware, "%", {:times=>3}, &#<Proc:/
+    @app.trace.should =~ %r{, when: \[{:path_info=>\"/\"}]\n}
 
     @app.run @hello_app
     get("/").body.should == "%%%Hello from /%%%"
@@ -78,7 +90,11 @@ describe RackStack, "#use" do
   it ":middleware_name, MiddlewareClass" do
     @app.use :response_wrapper, ResponseWrapperMiddleware
 
-    @app.trace.should == clean_trace("use :response_wrapper, ResponseWrapperMiddleware")
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        use :response_wrapper, ResponseWrapperMiddleware
+      end
+    })
 
     @app.run @hello_app
     get("/").body.should == "*Hello from /*"
@@ -93,9 +109,11 @@ describe RackStack, "#use" do
     @app.use :different_name, ResponseWrapperMiddleware, "C"
 
     @app.trace.should == clean_trace(%{
-      use :response_wrapper, ResponseWrapperMiddleware, "A"
-      use :response_wrapper, ResponseWrapperMiddleware, "B"
-      use :different_name, ResponseWrapperMiddleware, "C"
+      RackStack.new do
+        use :response_wrapper, ResponseWrapperMiddleware, "A"
+        use :response_wrapper, ResponseWrapperMiddleware, "B"
+        use :different_name, ResponseWrapperMiddleware, "C"
+      end
     })
 
     @app.run @hello_app
@@ -111,8 +129,8 @@ describe RackStack, "#use" do
   it ":middleware_name, MiddlewareClass, *arguments, :arg1 => true, :when => <RequestMatcher>, &block" do
     @app.use :response_wrapper, ResponseWrapperMiddleware, "%", :times => 3, :when => { :path_info => "/" } do end
 
-    @app.trace.start_with?('use :response_wrapper, ResponseWrapperMiddleware, "%", {:times=>3}, &#<Proc:').should be_true
-    @app.trace.end_with?(", when: [{:path_info=>\"/\"}]\n").should be_true
+    @app.trace.should =~ /use :response_wrapper, ResponseWrapperMiddleware, "%", {:times=>3}, &#<Proc:/
+    @app.trace.should =~ %r{, when: \[{:path_info=>\"/\"}]}
 
     @app.run @hello_app
     get("/").body.should == "%%%Hello from /%%%"

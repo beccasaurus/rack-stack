@@ -16,7 +16,11 @@ describe RackStack, "#run" do
   it "@app" do
     @app.run @hello_app
 
-    @app.trace.should == clean_trace("run SimpleApp<hello>")
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        run SimpleApp<hello>
+      end
+    })
 
     get("/foo/bar").body.should == "Hello from /foo/bar"
   end
@@ -26,8 +30,10 @@ describe RackStack, "#run" do
     @app.run @goodbye_app, :when => { :path_info => /goodbye/ }
 
     @app.trace.should == clean_trace(%{
-      run SimpleApp<hello>, when: [{:path_info=>/hello/}]
-      run SimpleApp<goodbye>, when: [{:path_info=>/goodbye/}]
+      RackStack.new do
+        run SimpleApp<hello>, when: [{:path_info=>/hello/}]
+        run SimpleApp<goodbye>, when: [{:path_info=>/goodbye/}]
+      end
     })
 
     get("/hello/foo").body.should == "Hello from /hello/foo"
@@ -37,7 +43,11 @@ describe RackStack, "#run" do
   it ":app_name, @app" do
     @app.run :app_name, @hello_app
 
-    @app.trace.should == "run :app_name, SimpleApp<hello>\n"
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        run :app_name, SimpleApp<hello>
+      end
+    })
 
     get("/").body.should == "Hello from /"
 
@@ -49,7 +59,11 @@ describe RackStack, "#run" do
   it ":app_name, @app, :when => <RequestMatcher>" do
     @app.run :app_name, @hello_app, :when => { :path_info => /.*/ }
 
-    @app.trace.should == "run :app_name, SimpleApp<hello>, when: [{:path_info=>/.*/}]\n"
+    @app.trace.should == clean_trace(%{
+      RackStack.new do
+        run :app_name, SimpleApp<hello>, when: [{:path_info=>/.*/}]
+      end
+    })
 
     get("/").body.should == "Hello from /"
 

@@ -99,21 +99,26 @@ describe RackStack do
     end
 
     @app.trace.should == clean_trace(%{
-      map "/foo" do
+      RackStack.new do
         map "/foo" do
-          run :name, SimpleApp<inner_inner>
+          map "/foo" do
+            run :name, SimpleApp<inner_inner>
+          end
+          run :name, SimpleApp<inner>
         end
-        run :name, SimpleApp<inner>
+        run :name, SimpleApp<outer>
       end
-      run :name, SimpleApp<outer>
     })
 
     @app.remove(:name)
 
     @app.trace.should == clean_trace(%{
-      map "/foo" do
+      RackStack.new do
         map "/foo" do
+          map "/foo" do
+          
           end
+        end
       end
     })
   end
@@ -202,9 +207,10 @@ describe RackStack do
       run SimpleApp.new(:foo){ write "hi from foo.com app" }
     end
 
-    # TODO this is going to include RackStack.new when: [{"host": ...}] soon!
     @app.trace.should == clean_trace(%{
-      run SimpleApp<foo>
+      RackStack.new when: [{:host=>"foo.com"}] do
+        run SimpleApp<foo>
+      end
     })
 
     # When conditions aren't met, NoMatchingApplicationError is raised

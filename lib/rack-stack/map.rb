@@ -33,14 +33,13 @@ class RackStack
     def trace
       matchers = request_matchers.select(&:trace).map(&:matcher)
 
-      traced = ""
-      traced << "map"
+      traced = "map"
       traced << " #{name.inspect}," if name
       traced << " #{location.inspect}"
       traced << ", when: #{matchers.inspect}" if matchers.any?
       traced << " do\n"
-      traced << super.gsub(/^/, "  ")
-      traced << "end\n"
+      traced << super.split("\n")[1..-2].join("\n") # ignore first/last RackStack.new/end lines
+      traced << "\nend\n"
       traced
     end
 
