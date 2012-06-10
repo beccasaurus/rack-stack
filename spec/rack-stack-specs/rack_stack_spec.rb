@@ -66,9 +66,8 @@ describe RackStack do
     rescue Exception => ex
       exception = ex
     ensure
-      # TODO this should have the rack_stack instance (instead of just the stack)
       exception.should be_an_instance_of RackStack::NoMatchingApplicationError
-      exception.stack.should == @app.stack
+      exception.rack_stack.should == @app
       exception.env["PATH_INFO"].should == "/some-path"
     end
   end

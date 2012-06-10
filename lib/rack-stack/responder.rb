@@ -1,19 +1,21 @@
 class RackStack
 
-  # TODO rename to just: RackStack::Responder.
   # @api private
-  # Walks down a stack, calling all Rack applications (middlewares/endpoints) that match this request.
+  #
   # Responsible for generating a single response for a request sent to RackStack.
-  class StackResponder
-    def initialize(stack, default_app, env) # TODO go ahead and couple this to RackStack ... we want it please!
-      @stack = stack
-      @default_app = default_app
+  #
+  # Walks down a stack, calling all Rack applications (middlewares/endpoints)
+  # that match this request.
+  class Responder
+
+    def initialize(rack_stack, env)
+      @rack_stack = rack_stack
       @env = env
       @stack_level = 0
     end
 
     def next_application
-      @stack[@stack_level]
+      @rack_stack.stack[@stack_level]
     end
 
     def next_matching_application
@@ -31,13 +33,13 @@ class RackStack
         @stack_level += 1
         rack_application.update_application(self) if rack_application.respond_to?(:update_application)
         rack_application.call(@env)
-      elsif @default_app
-        @default_app.call(@env)
+      elsif @rack_stack.default_app
+        @rack_stack.default_app.call(@env)
       else
-        if @stack.any? {|app| app.is_a? URLMap } # TODO check this logic ... when do we want to return these 404s?
+        if @rack_stack.stack.any? {|app| app.is_a? URLMap } # For Rack::Builder URLMap compatibility
           [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{@env["PATH_INFO"]}"]]
         else
-          raise NoMatchingApplicationError.new(:stack => @stack, :env => @env) # TODO this should have the RackStack
+          raise NoMatchingApplicationError.new(:rack_stack => @rack_stack, :env => @env)
         end
       end
     end

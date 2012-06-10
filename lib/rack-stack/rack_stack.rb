@@ -126,8 +126,8 @@ class RackStack
 
   # Configures this RackStack using the provided block.
   #
-  # @yield [nil, RackStack] If the given block has no arguments, it will be 
-  #   `instance_eval`'d against this RackStack.  Alternatively, 1 block argument 
+  # @yield [nil, RackStack] If the given block has no arguments, it will be
+  #   `instance_eval`'d against this RackStack.  Alternatively, 1 block argument
   #   may be used and we will call that block, yielding this RackStack instance.
   #
   # @note This is not 100% compatible with the behavior of blocks passed to Rack::Builder's constructor.
@@ -136,15 +136,12 @@ class RackStack
     indifferent_eval &block
   end
 
-  # RackStack instanced behave like Rack applications by implementing `#call(env)`
+  # Standard Rack application `#call` implementation.
   def call(env)
-    StackResponder.new(stack, @default_app, env).finish
+    Responder.new(self, env).finish
   end
 
-  # @api private
-  #
   # Returns a Rack application/endpoint for this RackStack.
-  #
   # @note This is implemented for Rack::Builder compatibility only.
   # @raise [RuntimeError] If this RackStack contains no application (eg. only middleware), an exception will be raised.
   def to_app
@@ -159,7 +156,7 @@ class RackStack
     add_to_stack self.class.use(*args, &block)
   end
 
-  # Adds a nested {RackStack} to the {#stack} that is only evaluated when the given 
+  # Adds a nested {RackStack} to the {#stack} that is only evaluated when the given
   # path/url is matched.  This is intended to be compatible with `Rack::URLMap`.
   #
   # See {RackStack.map RackStack::map} for parameter documentation.
@@ -176,30 +173,28 @@ class RackStack
 
   # Returns the Rack object in this {RackStack} with the given name, if any.
   #
-  #  - If you `run :name, RackApplication.new`, `get(:name)` will return the `RackApplication` instance.
-  #  - If you `use :name, RackMiddleware`, `get(:name)` will return ... (?) **Not Implemented Yet**
-  #  - If you `map :name, "/path" do ... end`, `get(:name)` will return the `RackStack` instance. **Not Implemented Yet**
-  #
   # @example
-  #   # show 3 examples, 1 for each #run, use, map TODO
+  #   rack_stack.run :foo, @rack_app
+  #
+  #   rack_stack.get :foo # will return @rack_app
+  # @example
+  #   rack_stack.use :foo, MiddlewareClass
+  #
+  #   rack_stack.get :foo # will return instance of MiddlewareClass RackStack uses to process requests
+  # @example
+  #   rack_stack.map :foo, "/path" do
+  #     run :app_inside_map, @foo_app
+  #   end
+  #
+  #   rack_stack.get :foo # will return RackStack instance representing map block
+  #
+  #   rack_stack.get(:foo).get(:app_inside_map) # Works because :foo is the inner RackStack
+  #   rack_stack[:foo][:app_inside_map]         # Works thanks to our [] alias
+  #   rack_stack.foo.app_inside_map             # Works thanks to our method_missing implementation
   def get(name, &block)
     app = get_app_by_name(name)
     indifferent_eval(app, &block) if app
     app
-  end
-
-  def get_app_by_name(name)
-    if app = @stack.detect {|app| name == app.name }
-      case app
-      when Middleware then return app.middleware
-      when URLMap then return app.rack_stack
-      when Endpoint then return app.application
-      end
-    end
-
-    nested_rack_stacks.each do |rack_stack|
-      return app if app = rack_stack.get(name)
-    end
   end
 
   alias [] get
@@ -231,8 +226,21 @@ class RackStack
     !! get(name)
   end
 
-  # @api private
-  # Not currently publicly supported, this may be used to render a RackStack to string for debugging.
+  # Returns a string representation of this RackStack (for debugging).
+  #
+  # @example
+  #   rack_stack = RackStack.new do
+  #     # TODO finish this documentation after implementing :when on RackStack and then updating #trace to be wrapped with RackStack.new do ... NOTE also consider a RackStack with a :name (?) ... Hmm ... leads further down the path towards URLMap being just a RackStack with a particular configuration ... but, on the other hand, it has odd behavior ... hmm ...
+  #   end
+  #
+  #   puts rack_stack.trace
+  #   
+  #   RackStack.new do # TODO wrap trace with this (show "RackStack.new" line so we can trace :default_app and :when)
+  #     use X
+  #     map "/Y"
+  #     run Z
+  #   end
+  #
   def trace
     @stack.map(&:trace).join
   end
@@ -251,6 +259,20 @@ class RackStack
       else
         @stack.push app
       end
+    end
+  end
+
+  def get_app_by_name(name)
+    if app = @stack.detect {|app| name == app.name }
+      case app
+      when Middleware then return app.middleware
+      when URLMap then return app.rack_stack
+      when Endpoint then return app.application
+      end
+    end
+
+    nested_rack_stacks.each do |rack_stack|
+      return app if app = rack_stack.get(name)
     end
   end
 

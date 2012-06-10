@@ -1,13 +1,22 @@
 class RackStack
 
   # Raised when a RackStack finds no matching application for a request.
-  # Not raised if RackStack is being used as a middleware (or has a URLMap). TODO (? is this right ? spec what exactly happens with a URLMap/etc ...)
+  #
+  # Not raised if RackStack has default_app or includes a URLMap (for
+  # Rack::Buidler compatibility).
   class NoMatchingApplicationError < StandardError
-    attr_accessor :stack, :env
 
-    def initialize(attributes = {})
-      self.stack = attributes[:stack]
-      self.env = attributes[:env]
+    # The {RackStack} dispatched to for the request that caused this
+    # {NoMatchingApplicationError} to be raised.
+    attr_accessor :rack_stack
+
+    # The Rack environment Hash associated with the request that caused this
+    # {NoMatchingApplicationError} to be raised.
+    attr_accessor :env
+
+    def initialize(attributes)
+      self.rack_stack = attributes.fetch(:rack_stack)
+      self.env = attributes.fetch(:env)
     end
   end
 end

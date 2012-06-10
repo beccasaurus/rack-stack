@@ -12,7 +12,7 @@ class RackStack
       self.trace = trace
     end
 
-    def result(env)
+    def result(env) # TODO change to #matches?(env) ... cuz it's nicer.
       request = Rack::Request.new(env)
 
       if @matcher.respond_to?(:call)
