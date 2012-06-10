@@ -110,10 +110,14 @@ class RackStack
   # @see RackStack.map
   attr_accessor :stack
 
-  # TODO expose default_app as an attribute
+  # Default Rack application that will be called if no Rack endpoint is found for a request.
+  #
+  # @note When RackStack is used as a Rack middleware, this is the application that 
+  #   the middleware will `#call` if no matching endpoint is found in the RackStack.
+  attr_accessor :default_app
 
   # Instantiates a new {RackStack}.
-  # @param [#call] Default application to call if no other matching applications are found.
+  # @param [#call] default_app Default application to `#call` if no other matching Rack endpoint is found ({#default_app}).
   def initialize(default_app = nil, &block)
     @default_app = default_app
     @stack = []

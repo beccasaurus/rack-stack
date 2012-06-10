@@ -59,7 +59,7 @@ describe RackStack do
     get("/").body.should == "@ivar was out of scope"
   end
 
-  it "can pass a block argument to constructor (does not instance_eval)" do
+  it "does not instance_eval block passed with block argument" do
     @ivar_app = SimpleApp.new { write "Hi from @ivar app" }
 
     @app = RackStack.new {|o|
@@ -79,6 +79,10 @@ describe RackStack do
     end
 
     get("/").body.should == "Hello from Default App"
+
+    @app.default_app = SimpleApp.new { write "Changed default app!" }
+
+    get("/").body.should == "Changed default app!"
   end
 
   it "raises RackStack::NoMatchingApplicationError (with the RackStack and a stack trace)" do
