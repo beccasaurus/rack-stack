@@ -1,8 +1,7 @@
 class RackStack
 
   # @api private
-  # Represents a Rack middleware (eg. added via #use)
-  class Middleware
+  class Use
     include Component
 
     attr_accessor :middleware_class, :arguments, :block, :middleware, :application

@@ -1,10 +1,7 @@
 class RackStack
 
   # @api private
-  # Represents a Rack URLMap (eg. added via #map)
-  #
-  # TODO even though this class is private, I feel like having the name URLMap might imply that you could actually try to use this class yourself as a URLMap implementation or something.  Maybe we should rename these classes back to being named after the statements to make it very clear that this is more like an AST for representing the stack layers than it is a standalone class ...
-  class URLMap
+  class Map
     include Component
 
     # TODO keep URLMap (as Map) but inherit from RackStack?  override #trace?

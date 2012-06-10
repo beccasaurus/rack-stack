@@ -54,6 +54,7 @@ class RackStack
     end
   end
 
+  # TODO Use.new instead?  if so, move argument logic into Use.
   # Returns {RackStack} object representing a Rack middleware that can be added to the {#stack}.
   #
   # @example
@@ -70,9 +71,10 @@ class RackStack
   def self.use(*args, &block)
     name = args.shift if args.first.is_a?(Symbol)
     klass = args.shift
-    Middleware.new(name, klass, *args, &block)
+    Use.new(name, klass, *args, &block)
   end
 
+  # TODO Run.new instead?  if so, move argument logic into Run.
   # Returns object representing a Rack endpoint that can be added to the {#stack}.
   #
   # @example
@@ -85,9 +87,10 @@ class RackStack
     name = args.shift if args.first.is_a?(Symbol)
     application = args.shift
     options = args.shift
-    Endpoint.new(name, application, options)
+    Run.new(name, application, options)
   end
 
+  # TODO Map.new instead?  if so, move argument logic into Map.
   # Returns object representing a Rack URLMap that can be added to the #stack
   #
   # @example
@@ -100,7 +103,7 @@ class RackStack
     name = args.shift if args.first.is_a?(Symbol)
     path = args.shift
     options = args.shift
-    URLMap.new(name, path, options, &block)
+    Map.new(name, path, options, &block)
   end
 
   # Returns an Array of objects representing Rack applications/components.
@@ -153,7 +156,7 @@ class RackStack
     elsif default_app
       default_app.call(env)
     else
-      if stack.any? {|app| app.is_a? URLMap }
+      if stack.any? {|component| component.is_a? Map }
         [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{env["PATH_INFO"]}"]]
       else
         raise NoMatchingApplicationError.new(:rack_stack => self, :env => env)
@@ -165,7 +168,7 @@ class RackStack
   # @note This is implemented for Rack::Builder compatibility only.
   # @raise [RuntimeError] If this RackStack contains no application (eg. only middleware), an exception will be raised.
   def to_app
-    fail "missing run or map statement" if stack.all? {|app| app.is_a? Middleware }
+    fail "missing run or map statement" if stack.all? {|component| component.is_a? Use }
     self
   end
 
@@ -269,12 +272,12 @@ class RackStack
 
   def add_to_stack(app)
     case app
-    when Endpoint
+    when Run
       @stack.push app
-    when URLMap
+    when Map
       @stack.insert index_for_next_urlmap(app), app
-    when Middleware
-      if non_middleware = @stack.index {|a| not a.is_a? Middleware }
+    when Use
+      if non_middleware = @stack.index {|a| not a.is_a? Use }
         @stack.insert non_middleware, app
       else
         @stack.push app
@@ -285,9 +288,9 @@ class RackStack
   def get_app_by_name(name)
     if app = @stack.detect {|app| name == app.name }
       case app
-      when Middleware then return app.middleware
-      when URLMap then return app.rack_stack
-      when Endpoint then return app.application
+      when Use then return app.middleware
+      when Map then return app.rack_stack
+      when Run then return app.application
       end
     end
 
@@ -298,9 +301,9 @@ class RackStack
 
   def index_for_next_urlmap(app)
     @stack.each_with_index do |stack_app, i|
-      if stack_app.is_a? Endpoint
+      if stack_app.is_a? Run
         return i
-      elsif stack_app.is_a? URLMap
+      elsif stack_app.is_a? Map
         return i if app.location.length > stack_app.location.length
       end
     end
@@ -308,6 +311,7 @@ class RackStack
   end
 
   def nested_rack_stacks
-    @stack.select {|app| app.is_a? URLMap }.map {|map| map.rack_stack }
+    # TODO @stack.select {|component| component.is_a? RackStack } ... once Map < RackStack (?)
+    @stack.select {|component| component.is_a?(Map) }.map {|map| map.rack_stack }
   end
 end

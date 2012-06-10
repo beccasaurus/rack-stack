@@ -36,7 +36,7 @@ class RackStack
       elsif @rack_stack.default_app
         @rack_stack.default_app.call(@env)
       else
-        if @rack_stack.stack.any? {|app| app.is_a? URLMap } # For Rack::Builder URLMap compatibility
+        if @rack_stack.stack.any? {|component| component.is_a?(Map) } # For Rack::Builder URLMap compatibility
           [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{@env["PATH_INFO"]}"]]
         else
           raise NoMatchingApplicationError.new(:rack_stack => @rack_stack, :env => @env)

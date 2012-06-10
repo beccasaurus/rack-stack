@@ -1,8 +1,7 @@
 class RackStack
 
   # @api private
-  # Represents a Rack endpoint (eg. added via #run)
-  class Endpoint
+  class Run
     include Component
 
     # The actual Rack application (instance) to run
