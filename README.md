@@ -39,10 +39,10 @@ RackStack's API is actually intended to be [compatible with Rack::Builder's][com
 
 RackStack offers a number of additional features:
 
- 1. Conditional Logic
- 1. Named Components
- 1. Stack Manipulation
- 1. Use as Middleware
+ 1. [Conditional Logic](#conditional-logic)
+ 1. [Named Components](#named-components)
+ 1. [Stack Manipulation](#stack-manipulation)
+ 1. [Use as Middleware](#use-as-middleware)
 
 Use Cases
 ---------
