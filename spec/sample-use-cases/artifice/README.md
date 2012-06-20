@@ -5,3 +5,5 @@ data from 2 websites, http://dogs.com and http://cats.com.
 
 In our tests for this class, we use Artifice to override Net::HTTP with a mounted 
 RackStack (with dogs.com and cats.com mounted to mock those sites' APIs).
+
+`TODO`: Add example of busting out of Artifice by registering a Rack::Proxy as an app in the stack (a Rack::Proxy given access to the real Net::HTTP instance).  `app.skip.host "foo.com"`
