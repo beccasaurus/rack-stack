@@ -3,7 +3,7 @@ RackStack
 
 > **PRE-RELEASE** RackStack is currently ALPHA
 
-`RackStack` is a fully managed stack of Rack applications (*inspired by [Rack::Builder][]*)
+`RackStack` is a managed stack of Rack applications (*inspired by [Rack::Builder][]*)
 
 Installation
 ------------
@@ -200,7 +200,7 @@ rack_stack.remove :my_middleware
 
 If you want to "void the warranty", feel free to add/remove components to the internal `RackStack#stack`.
 
-`RackStack#stack` is an array of RackStack components, each representing a #use, #map, or #run statement.
+`RackStack#stack` is an `Array` of RackStack components, each representing a #use, #map, or #run statement.
 
 ```ruby
 # For example, if you want to put a #use statement *first*, you can:
