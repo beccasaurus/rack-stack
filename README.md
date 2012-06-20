@@ -71,6 +71,16 @@ RackStack.new do
   # current request.  In this example, the following would be evaluated: /about-us/ === "<the path info>"
   use MyMiddleware, when: { path_info: /about-us/ }
 
+  # Map also works with :when.
+  map "/section", when: ->{ params["mobile"] == "true" } do
+    # Nested options work with conditionals as well.
+    run AndroidSectionApp.new, when: { user_agent: /Android/i }
+    run MobileSectionApp.new
+  end
+
+  # Run also works with :when.
+  run @app, when: { host: "domain.com" }
+
 end
 ```
 
