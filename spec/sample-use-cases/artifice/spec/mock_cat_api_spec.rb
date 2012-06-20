@@ -9,32 +9,32 @@ describe MockCatApi do
   include Rack::Test::Methods
   alias app cat_api
 
-  describe "/cats.txt returns cat names delimited by newlines" do
+  describe "/cats.xml returns cat names delimited by newlines" do
     it "no cats" do
       cat_api.names.should be_empty
 
-      get "/cats.txt"
+      get "/cats.xml"
       last_response.status.should == 200
-      last_response.content_type.should == "text/plain"
+      last_response.content_type.should == "application/xml"
       last_response.body.should == ""
     end
 
     it "1 cat" do
-      cat_api.names = %w[ Rover ]
+      cat_api.names = %w[ Mittens ]
 
-      get "/cats.txt"
+      get "/cats.xml"
       last_response.status.should == 200
-      last_response.content_type.should == "text/plain"
-      last_response.body.should == "Rover"
+      last_response.content_type.should == "application/xml"
+      last_response.body.should == "<meow>Mittens</meow>"
     end
 
     it "many cats" do
-      cat_api.names = %w[ Rover Spot Rex ]
+      cat_api.names = %w[ Mittens Paws Patches ]
 
-      get "/cats.txt"
+      get "/cats.xml"
       last_response.status.should == 200
-      last_response.content_type.should == "text/plain"
-      last_response.body.should == "Rover\nSpot\nRex"
+      last_response.content_type.should == "application/xml"
+      last_response.body.should == "<meow>Mittens</meow>\n<meow>Paws</meow>\n<meow>Patches</meow>"
     end
   end
 end

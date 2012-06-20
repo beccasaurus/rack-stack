@@ -6,8 +6,10 @@ class MockCatApi
     self.names = []
   end
 
-  # /cats.txt returns text/plain cat names (delimited by newlines)
+  # /cats.xml returns text/plain cat names (delimited by newlines)
   def call(env)
-    [200, {"Content-Type" => "text/plain"}, [names.join("\n")]]
+    body = names.map {|name| "<meow>#{name}</meow>" }.join("\n")
+
+    [200, {"Content-Type" => "application/xml"}, [body]]
   end
 end

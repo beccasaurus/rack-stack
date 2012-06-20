@@ -13,6 +13,8 @@ class DogsAndCats
   end
 
   def self.fetch_cat_names
-    open("http://cats.com/cats.txt").read.split("\n")
+    open("http://cats.com/cats.txt").read.split("\n").map do |text|
+      text.match(%r{<meow>(.*)</meow>}).captures.first
+    end
   end
 end

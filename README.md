@@ -42,6 +42,15 @@ RackStack offers a number of additional features:
  1. Stack Manipulation
  1. Use as Middleware
 
+Use Cases
+---------
+
+Any scenario where you want to mount many Rack applications together into 1 application.
+
+RackStack can be used as a Rack Router (by making use of `:when` conditions and/or `#map` statements).
+
+RackStack can be particularly useful for managing mock web APIs in tests, eg. when using [Artifice][].  ([RackStack Artifice sample](https://github.com/remi/rack-stack/tree/master/spec/sample-use-cases/artifice))
+
 Conditional Logic
 -----------------
 
@@ -185,3 +194,4 @@ Rack::Builder.new {
 
 [Rack::Builder]: http://rack.rubyforge.org/doc/classes/Rack/Builder.html
 [compatibility]: https://github.com/remi/rack-stack/tree/master/spec/rack-builder-compatibility
+[artifice]: https://github.com/wycats/artifice
