@@ -64,7 +64,7 @@ RackStack.new do
   # When a block is given with 1 argument, the current request will be yielded (as a Rack::Request)
   use MyMiddleware, when: ->(request){ request.path_info =~ /about-us/ }
 
-  # When a block is given with no arguments, the block is evaluated against the current request
+  # When a block is given with no arguments, the block is evaluated against the current request instance
   use MyMiddleware, when: ->{ path_info =~ /about-us/ }
 
   # When a Hash (or Array of pairs) is given, each value will be compared against the value from the 
