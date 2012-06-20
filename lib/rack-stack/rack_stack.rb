@@ -249,6 +249,7 @@ class RackStack
     end
   end
 
+  # TODO don't do this logic here, every component needs to return an object when #X is called (maybe #get for consistency?)
   def get_app_by_name(name)
     if app = stack.detect {|app| name == app.name }
       case app

@@ -154,8 +154,17 @@ rack_stack.map "/foo" do
   run FooApp.new
 end
 
-# Feel free to #remove named applications
+# You can easily remove named applications
 rack_stack.remove :my_middleware
+
+# To remove un-named applications, you can manually remove components from the stack
+rack_stack.stack.reject! do |component|
+  # .instance may be called on any component to get what RackStack#get returns for a component.
+  instance = component.instance
+
+  # sample of a check that we might want to do to remove a component.
+  true if instance.is_a? MyMiddleware && instance.my_middleware_method?
+end
 
 # You can also manipulate the stack Array directly.
 #
