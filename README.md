@@ -1,6 +1,8 @@
 RackStack
 =========
 
+> **PRE-RELEASE** RackStack is currently ALPHA
+
 `RackStack` is a fully managed stack of Rack applications (*inspired by [Rack::Builder][]*)
 
 Installation
