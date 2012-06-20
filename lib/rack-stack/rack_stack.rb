@@ -95,20 +95,9 @@ class RackStack
   # @raises NoMatchingApplicationError ... TODO yardoc for raise documentation?
   #
   # @note ... TODO ... if there's atleast 1 #map, 404/Not Found returned instead (for URLMap compatibility)
-  #
-  # TODO DRY this up with Responder#finish (?) ... same logic ... where should the 404 bits really be anyway?  It's URLMap specific ...
   def call(env)
-    if matches?(env)
-      Responder.new(self, env).finish
-    elsif default_app
-      default_app.call(env)
-    else
-      if stack.any? {|component| component.is_a? Map }
-        [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{env["PATH_INFO"]}"]]
-      else
-        raise NoMatchingApplicationError.new(:rack_stack => self, :env => env)
-      end
-    end
+    return default_response(env) unless matches?(env)
+    Responder.new(self, env).finish
   end
 
   # Returns a Rack application/endpoint for this RackStack.
@@ -194,6 +183,20 @@ class RackStack
   # @see #method_missing
   def respond_to?(name)
     !! get(name)
+  end
+
+  # @api private
+  # If this RackStack's request matchers don't match the a request, this will be returned.
+  # If the Responder fails to find a matching application for a request, this will be returned.
+  def default_response(env)
+    if default_app
+      default_app.call(env)
+    elsif is_a?(Map) || stack.any? {|component| component.is_a?(Map) }
+      # For Rack::Builder URLMap compatibility
+      [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{env["PATH_INFO"]}"]]
+    else
+      raise NoMatchingApplicationError.new(:rack_stack => self, :env => env)
+    end
   end
 
   # Returns a string representation of this RackStack (for debugging).
