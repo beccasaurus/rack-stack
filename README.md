@@ -8,6 +8,16 @@ RackStack
 Installation
 ------------
 
+RackStack is intentionally not distrubuted on RubyGems YET.
+
+For now, using Bundle:
+
+```ruby
+gem "rack-stack", :git => "https://github.com/remi/ember-todo.git"
+```
+
+### Once RackStack is on RubyGems.org
+
 Using Bundler:
 
 ```ruby
