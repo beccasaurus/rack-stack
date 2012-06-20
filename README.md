@@ -31,7 +31,7 @@ rack_stack = RackStack.new do
 end
 
 # A RackStack instance is a Rack application, so you can #call it.
-rack_stack.call(env)
+status, headers, body = rack_stack.call(env)
 ```
 If you're familar with Rack::Builder, that should look very familiar!
 
