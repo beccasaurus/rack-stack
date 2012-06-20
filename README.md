@@ -1,19 +1,19 @@
 RackStack
 =========
 
-> **PRE-RELEASE** RackStack is currently ALPHA
+> **Here Be Dragons** RackStack is currently in ALPHA.  This is a preview.
 
 `RackStack` is a managed stack of Rack applications (*inspired by [Rack::Builder][]*)
 
 Installation
 ------------
 
-RackStack is intentionally not distrubuted on RubyGems YET.
+RackStack is intentionally not YET distrubuted on RubyGems.
 
 For now, using Bundle:
 
 ```ruby
-gem "rack-stack", :git => "https://github.com/remi/ember-todo.git"
+gem "rack-stack", :git => "https://github.com/remi/rack-stack.git"
 ```
 
 ### Once RackStack is on RubyGems.org
