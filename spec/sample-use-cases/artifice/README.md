@@ -1,6 +1,6 @@
 # RackStack Sample Use Case: Artifice
 
-In this sample, we have a [DogsAndCats](dogs_and_cats.rb) class that aggreggates 
+In this sample, we have a DogsAndCats class that aggreggates 
 data from 2 websites, http://dogs.com and http://cats.com.
 
 In our tests for this class, we use Artifice to override Net::HTTP with a mounted 
