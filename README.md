@@ -38,21 +38,14 @@ RackStack's API is actually intended to be [compatible with Rack::Builder's][com
 RackStack offers a number of additional features:
 
  1. Conditional Logic
- 1. Named Applications
+ 1. Named Components
  1. Stack Manipulation
  1. Use as Middleware
-
-Uses Cases
-----------
-
-`TODO` reference sample use-cases (actual code / specs)
-
-`TODO` add Rack::Proxy example to artifice example (for using real HTTP)
 
 Conditional Logic
 -----------------
 
-RackStack allows you to easily add conditional logic for `:when` to `#run`, `#use`, or `#map` a rack component.
+RackStack allows you to easily add conditional logic for `:when` to `#run`, `#use`, or `#map` a Rack component.
 
 ```ruby
 RackStack.new do
@@ -70,19 +63,69 @@ RackStack.new do
 end
 ```
 
-Named Applications
-------------------
+Named Components
+----------------
 
-`TODO` Named Applications section
+RackStack allows you to name any of your Rack components.
 
- - add names ...
- - remove ...
- - get access to...
+```ruby
+@rack_stack = RackStack.new do
+  use :cool_middleware, CoolMiddleware
+  map :foo, "/foo" do
+    run :foo_app, FooApp.new
+  end
+  run :main, MainApp.new
+end
+```
+
+### Getting components by name
+
+By providing names for our middleware/maps/endoints, you can easily access 
+these instances via `RackStack#get`.
+
+```ruby
+# For middleware, the instance of the middleware that we create & use to process requests is returned.
+@rack_stack.get(:cool_middleware)
+# => #<CoolMiddleware:0x000000015fb520>
+
+# For endpoints, the application instance is returned.
+@rack_stack.get(:main)
+# => #<MainApp:0x000000015db7a8>
+
+# Components nested within maps are returned too.
+@rack_stack.get(:foo_app)
+# => #<FooApp:0x000000015fb740>
+
+# For maps, the RackStack instance (representing the nested map) is returned.
+@rack_stack.get(:foo)
+# => #<RackStack:0x000000015cf840>
+```
+
+We also provide some useful shortcuts for `RackStack#get`
+
+```ruby
+@rack_stack.get(:cool_middleware)
+# => #<CoolMiddleware:0x000000015fb520>
+
+# Get is aliased to [], so this also works.
+@rack_stack[:cool_middleware]
+
+# We also have a method_missing implementation, so this also works.
+@rack_stack.cool_middleware
+@rack_stack.respond_to? :cool_middleware # => true
+```
+
+### Removing components
+
+Names are particularly useful for removing components from a RackStack.
+
+```ruby
+# RackStack#remove removes every Rack component with the given name from the stack.
+@rack_stack.remove :cool_middleware
+```
 
 Stack Manipulation
 ------------------
-
-`TODO` Stack Manipulation section
 
 A `RackStack` may be manipulated at runtime.
 
@@ -108,13 +151,9 @@ rack_stack.remove :my_middleware
 # For example, if you want to put a #use statement *first*, you can:
 rack_stack.stack.unshift RackStack::Use.new(:my_middleware, SomeMiddleware)
 
-# ...
-
-# 
-rack_stack.stack.insert 1, RackStack::Use.new(:my_middleware, SomeMiddleware)
+# Note that #use/map/run statements are manually reproduced by passing the 
+# same arguments to the constructors of RackStack::Use/Map/Run classes.
 ```
-
- - Use/Map/Run must be used to create the object to manually insert into RackStack#stack
 
 Use as Middleware
 -----------------
@@ -143,8 +182,6 @@ Rack::Builder.new {
 
 }.to_app
 ```
-
-`TODO` - add performance benchmark scripts (and maybe specs) ... find out if it's OK for real-world usage ... optimize ... generate numbers on what the overhead is like of having your middlewares hosted in a RackStack versus a regular application with middleware constructed normally.
 
 [Rack::Builder]: http://rack.rubyforge.org/doc/classes/Rack/Builder.html
 [compatibility]: https://github.com/remi/rack-stack/tree/master/spec/rack-builder-compatibility
