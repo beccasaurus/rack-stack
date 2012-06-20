@@ -41,8 +41,8 @@ RackStack offers a number of additional features:
 
  1. [Conditional Logic](#conditional-logic)
  1. [Named Components](#named-components)
- 1. [Stack Manipulation](#stack-manipulation)
  1. [Use as Middleware](#use-as-middleware)
+ 1. [Stack Manipulation](#stack-manipulation)
 
 Use Cases
 ---------
@@ -147,51 +147,6 @@ Names may be used to remove components from a RackStack.
 @rack_stack.remove :cool_middleware
 ```
 
-Stack Manipulation
-------------------
-
-A `RackStack` may be manipulated at runtime.
-
-```ruby
-rack_stack = RackStack.new
-
-# You can run the RackStack or something else, eg. mount it with Artifice
-some_rack_server.run(rack_stack)
-
-# #use, #run, and #map may be used at runtime
-rack_stack.use :my_middleware, SomeMiddleware
-rack_stack.run SomeApp.new, when: { host: "someapp.com" }
-rack_stack.map "/foo" do
-  use FooMiddleware
-  run FooApp.new
-end
-
-# You can easily remove named applications
-rack_stack.remove :my_middleware
-
-# To remove un-named applications, you can manually remove components from the stack
-rack_stack.stack.reject! do |component|
-
-  # you can ask a component if it is a use? map? or run?
-  if component.use?
-
-    # .instance may be called on any component to get the object that RackStack#get returns for a component.
-    instance = component.instance
-
-    # sample of a check that we might want to do to remove a component.
-    true if instance.is_a? MyMiddleware && instance.my_middleware_method?
-  end
-end
-
-# You can also manipulate the stack Array directly.
-#
-# For example, if you want to put a #use statement *first*, you can:
-rack_stack.stack.unshift RackStack.use(:my_middleware, SomeMiddleware)
-
-# Note that #use/map/run statements are manually reproduced by passing the 
-# same arguments to the RackStack::use/map/run methods.
-```
-
 Use as Middleware
 -----------------
 
@@ -218,6 +173,55 @@ Rack::Builder.new {
   end
 
 }.to_app
+```
+
+Stack Manipulation
+------------------
+
+A `RackStack` may be manipulated at runtime.
+
+```ruby
+rack_stack = RackStack.new
+
+# You can run the RackStack or something else, eg. mount it with Artifice
+some_rack_server.run(rack_stack)
+
+# #use, #run, and #map may be used at runtime
+rack_stack.use :my_middleware, SomeMiddleware
+rack_stack.run SomeApp.new, when: { host: "someapp.com" }
+rack_stack.map "/foo" do
+  use FooMiddleware
+  run FooApp.new
+end
+
+# You can easily remove named applications
+rack_stack.remove :my_middleware
+```
+
+If you want to "void the warranty", feel free to add/remove components to the internal `RackStack#stack`.
+
+`RackStack#stack` is an array of RackStack components, each representing a #use, #map, or #run statement.
+
+```ruby
+# For example, if you want to put a #use statement *first*, you can:
+rack_stack.stack.unshift RackStack.use(:my_middleware, SomeMiddleware)
+
+# Note that #use/map/run statements are manually reproduced by passing the 
+# same arguments to the RackStack::use/map/run methods.
+
+# As another example, you may want to remove un-named applications from your RackStack.
+rack_stack.stack.reject! do |component|
+
+  # you can ask a component if it is a use? map? or run?
+  if component.use?
+
+    # .instance may be called on any component to get the object that RackStack#get returns for a component.
+    instance = component.instance
+
+    # sample of a check that we might want to do to remove a component.
+    true if instance.is_a? MyMiddleware && instance.my_middleware_method?
+  end
+end
 ```
 
 [Rack::Builder]: http://rack.rubyforge.org/doc/classes/Rack/Builder.html
