@@ -172,7 +172,7 @@ rack_stack.remove :my_middleware
 # To remove un-named applications, you can manually remove components from the stack
 rack_stack.stack.reject! do |component|
 
-  # components let you easily ask if they represent a use? map? or run?
+  # you can ask a component if it is a use? map? or run?
   if component.use?
 
     # .instance may be called on any component to get the object that RackStack#get returns for a component.
