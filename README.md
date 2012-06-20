@@ -128,7 +128,7 @@ We also provide some useful shortcuts for `RackStack#get`
 
 ### Removing components
 
-Names are particularly useful for removing components from a RackStack.
+Names may be used to remove components from a RackStack.
 
 ```ruby
 # RackStack#remove removes every Rack component with the given name from the stack.
