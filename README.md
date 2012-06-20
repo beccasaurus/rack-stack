@@ -12,7 +12,7 @@ Using Bundler:
 gem "rack-stack"
 ```
 
-Or just `gem install rack-rack`
+Or just `gem install rack-stack`
 
 Usage
 -----
