@@ -136,7 +136,21 @@ describe RackStack, "#use" do
     get("/foo").body.should == "Hello from /foo" # :when didn't hit this time, so no middleware
   end
 
-  it "RackStack, :when => <RequestMatcher> do (provides functionality similar to #map)" # TODO
+  it "RackStack, :when => <RequestMatcher> do (provides functionality similar to #map)" do
+    @app.use RackStack, :when => { :path_info => %r{^/foo} } do
+      use ResponseWrapperMiddleware, "[foo]"
+      run SimpleApp.new(:foo){ write "Hi from /foo" }
+    end
+    @app.use RackStack, :when => { :path_info => %r{^/bar} } do
+      use ResponseWrapperMiddleware, "[bar]"
+      run SimpleApp.new(:bar){ write "Hi from /bar" }
+    end
+    @app.run SimpleApp.new(:default){ write "Default app" }
+
+    get("/").body.should == "Default app"
+    get("/foo").body.should == "[foo]Hi from /foo[foo]"
+    get("/bar").body.should == "[bar]Hi from /bar[bar]"
+  end
 
   it "MiddlewareThatTracksAllInstances sample class works as expected" do
     MiddlewareThatTracksAllInstances.instances.should be_empty
