@@ -12,6 +12,7 @@ describe RackStack, "#trace" do
     @example_app = SimpleApp.new(:example_app)
   end
 
+  # TODO fixme, this isn't ideal!  But it's also not high priority.
   it "no components" do
     @app.trace.should == clean_trace(%{
       RackStack.new do

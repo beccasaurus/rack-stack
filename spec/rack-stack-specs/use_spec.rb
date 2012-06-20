@@ -19,9 +19,8 @@ describe RackStack, "#use" do
   end
 
   before do
-    # TODO de-align stuff like this (go thru and do this in a single commit) - why?  cleaner diffs.
-    @app         = RackStack.new
-    @hello_app   = SimpleApp.new {|req,resp| resp.write "Hello from #{req.path_info}"   }
+    @app = RackStack.new
+    @hello_app = SimpleApp.new {|req,resp| resp.write "Hello from #{req.path_info}"   }
     @goodbye_app = SimpleApp.new {|req,resp| resp.write "Goodbye from #{req.path_info}" }
     MiddlewareThatTracksAllInstances.instances.clear
     @app.stack.should be_empty
