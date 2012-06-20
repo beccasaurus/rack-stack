@@ -224,6 +224,19 @@ rack_stack.stack.reject! do |component|
 end
 ```
 
+## Contributing
+
+ 1. Fork it
+ 1. Create your feature branch (`git checkout -b my-new-feature`)
+ 1. Commit your changes (`git commit -am 'Added some feature'`)
+ 1. Push to the branch (`git push origin my-new-feature`)
+ 1. Create new Pull Request
+
+## License
+
+RackStack is released under the MIT license.
+
+
 [Rack::Builder]: http://rack.rubyforge.org/doc/classes/Rack/Builder.html
 [compatibility]: https://github.com/remi/rack-stack/tree/master/spec/rack-builder-compatibility
 [artifice]: https://github.com/wycats/artifice
