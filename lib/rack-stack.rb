@@ -1,3 +1,4 @@
+require "uri"
 require "rack"
 
 class RackStack

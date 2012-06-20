@@ -186,8 +186,8 @@ class RackStack
   end
 
   # @api private
-  # If this RackStack's request matchers don't match the a request, this will be returned.
-  # If the Responder fails to find a matching application for a request, this will be returned.
+  # If this RackStack's request matchers don't match the a request, this will be used.
+  # If the Responder fails to find a matching application for a request, this will be used.
   def default_response(env)
     if default_app
       default_app.call(env)
@@ -202,17 +202,25 @@ class RackStack
   # Returns a string representation of this RackStack (for debugging).
   #
   # @example
-  #   rack_stack = RackStack.new do
-  #     # TODO finish this documentation after implementing :when on RackStack and then updating #trace to be wrapped with RackStack.new do ... NOTE also consider a RackStack with a :name (?) ... Hmm ... leads further down the path towards URLMap being just a RackStack with a particular configuration ... but, on the other hand, it has odd behavior ... hmm ...
+  #   rack_stack = RackStack.new when: { host: "foo.com" } do
+  #     use MiddlewareClass, "some args"
+  #     map "/foo" do
+  #       run FooApp.new
+  #     end
+  #     run MainApp.new
   #   end
   #
   #   puts rack_stack.trace
-  #   
-  #   RackStack.new do # TODO wrap trace with this (show "RackStack.new" line so we can trace :default_app and :when)
-  #     use X
-  #     map "/Y"
-  #     run Z
-  #   end
+  #
+  #   # Output of printing #trace below:
+  #
+  #   # RackStack.new when: [{:host=>"foo.com"}] do
+  #   #   use MiddlewareClass, "some args"
+  #   #   map "/Y" do
+  #   #     run <result of FooApp.to_s>
+  #   #   end
+  #   #   run <result of MainApp.to_s>
+  #   # end
   #
   def trace
     traced = "RackStack.new"
