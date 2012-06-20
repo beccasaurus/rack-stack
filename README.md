@@ -232,6 +232,11 @@ end
  1. Push to the branch (`git push origin my-new-feature`)
  1. Create new Pull Request
 
+```sh
+# This will run all of the tests (RackStack tests, Rack::Builder tests, sample use cases tests)
+make test
+```
+
 ## License
 
 RackStack is released under the MIT license.
