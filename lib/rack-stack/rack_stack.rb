@@ -52,6 +52,17 @@ class RackStack
     end
   end
 
+  # TODO document these use/map/run
+  def self.use(*args, &block)
+    RackStack::Use.new(*args, &block)
+  end
+  def self.map(*args, &block)
+    RackStack::Map.new(*args, &block)
+  end
+  def self.run(*args, &block)
+    RackStack::Run.new(*args, &block)
+  end
+
   # Default Rack application that will be called if no Rack endpoint is found for a request.
   #
   # @note When RackStack is used as a Rack middleware, this is the application that 
@@ -151,9 +162,9 @@ class RackStack
   #   rack_stack[:foo][:app_inside_map]         # Works thanks to our [] alias
   #   rack_stack.foo.app_inside_map             # Works thanks to our method_missing implementation
   def get(name, &block)
-    app = get_app_by_name(name)
-    indifferent_eval(app, &block) if app
-    app
+    instance = get_instance(name)
+    indifferent_eval(instance, &block) if instance
+    instance
   end
 
   alias [] get
@@ -249,27 +260,22 @@ class RackStack
     end
   end
 
-  # TODO don't do this logic here, every component needs to return an object when #X is called (maybe #get for consistency?)
-  def get_app_by_name(name)
-    if app = stack.detect {|app| name == app.name }
-      case app
-      when Use then return app.middleware
-      when Map then return app
-      when Run then return app.application
-      end
+  def get_instance(name)
+    if component = stack.detect {|a| name == a.name }
+      return component.instance
     end
 
     nested_rack_stacks.each do |rack_stack|
-      return app if app = rack_stack.get(name)
+      return component if component = rack_stack.get(name)
     end
   end
 
   def index_for_next_urlmap(app)
-    stack.each_with_index do |stack_app, i|
-      if stack_app.is_a? Run
+    stack.each_with_index do |component, i|
+      if component.is_a? Run
         return i
-      elsif stack_app.is_a? Map
-        return i if app.location.length > stack_app.location.length
+      elsif component.is_a? Map
+        return i if app.location.length > component.location.length
       end
     end
     stack.length

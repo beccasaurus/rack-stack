@@ -29,6 +29,10 @@ class RackStack
       self.middleware = middleware_class.new(inner_app, *arguments, &block)
     end
 
+    def use?
+      true
+    end
+
     def update_application(rack_application)
       self.application = rack_application
     end
@@ -46,6 +50,10 @@ class RackStack
       traced << ", when: #{matchers_to_trace.inspect}" if matchers_to_trace.any?
       traced << "\n"
       traced
+    end
+
+    def instance
+      middleware
     end
 
     private

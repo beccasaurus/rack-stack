@@ -31,4 +31,11 @@ describe RackStack::Component do
     component.matches?(env_for "http://twitter.com", :method => :post).should be_true
   end
 
+  it "is not a #use? #map? or #run?" do
+    component = ComponentClass.new
+    component.use?.should be_false
+    component.map?.should be_false
+    component.run?.should be_false
+  end
+
 end

@@ -23,6 +23,10 @@ class RackStack
       add_request_matcher method(:host_matcher), false if uri.absolute?
     end
 
+    def map?
+      true
+    end
+
     def call(env)
       env["SCRIPT_NAME"] = env["SCRIPT_NAME"] + uri.path.chomp("/")
       env["PATH_INFO"] = matching_path env["PATH_INFO"]
@@ -51,6 +55,10 @@ class RackStack
 
     def host_matcher(request)
       uri.host == request.env["HTTP_HOST"]
+    end
+
+    def instance
+      self
     end
 
     private

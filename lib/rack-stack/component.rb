@@ -35,5 +35,23 @@ class RackStack
         request_matchers << matcher
       end
     end
+
+    # All component classes should override #instance to return the object that 
+    # `RackStack#instance(:component_name)` should return.
+    def instance
+      raise NotImplementedError, "#{self.class.name} must implement #instance"
+    end
+
+    def run?
+      false
+    end
+
+    def use?
+      false
+    end
+
+    def map?
+      false
+    end
   end
 end

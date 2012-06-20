@@ -7,6 +7,14 @@ describe RackStack, "#use" do
     Rack::Lint.new @app
   end
 
+  it "is a #use?" do
+    @app.stack.unshift RackStack.use(:foo, NamedMiddleware)
+
+    @app.stack.first.use?.should be_true
+    @app.stack.first.map?.should be_false
+    @app.stack.first.run?.should be_false
+  end
+
   class MiddlewareThatTracksAllInstances < NamedMiddleware
     def self.instances
       @instances ||= []

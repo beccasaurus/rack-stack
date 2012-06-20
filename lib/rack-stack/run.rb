@@ -20,6 +20,10 @@ class RackStack
       add_request_matcher args.first[:when] if args.first
     end
 
+    def run?
+      true
+    end
+
     # Calls the Rack application
     def call(env)
       application.call(env)
@@ -32,6 +36,10 @@ class RackStack
       traced << ", when: #{matchers_to_trace.inspect}" if matchers_to_trace.any?
       traced << "\n"
       traced
+    end
+
+    def instance
+      application
     end
   end
 end

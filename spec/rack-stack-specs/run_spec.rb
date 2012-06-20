@@ -13,6 +13,14 @@ describe RackStack, "#run" do
     @goodbye_app = SimpleApp.new(:goodbye){|req,resp| resp.write "Goodbye from #{req.path_info}" }
   end
 
+  it "is a #run?" do
+    @app.stack.unshift RackStack.run(:foo, SimpleApp.new)
+
+    @app.stack.first.run?.should be_true
+    @app.stack.first.map?.should be_false
+    @app.stack.first.use?.should be_false
+  end
+
   it "@app" do
     @app.run @hello_app
 

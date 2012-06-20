@@ -159,20 +159,25 @@ rack_stack.remove :my_middleware
 
 # To remove un-named applications, you can manually remove components from the stack
 rack_stack.stack.reject! do |component|
-  # .instance may be called on any component to get what RackStack#get returns for a component.
-  instance = component.instance
 
-  # sample of a check that we might want to do to remove a component.
-  true if instance.is_a? MyMiddleware && instance.my_middleware_method?
+  # components let you easily ask if they represent a use? map? or run?
+  if component.use?
+
+    # .instance may be called on any component to get the object that RackStack#get returns for a component.
+    instance = component.instance
+
+    # sample of a check that we might want to do to remove a component.
+    true if instance.is_a? MyMiddleware && instance.my_middleware_method?
+  end
 end
 
 # You can also manipulate the stack Array directly.
 #
 # For example, if you want to put a #use statement *first*, you can:
-rack_stack.stack.unshift RackStack::Use.new(:my_middleware, SomeMiddleware)
+rack_stack.stack.unshift RackStack.use(:my_middleware, SomeMiddleware)
 
 # Note that #use/map/run statements are manually reproduced by passing the 
-# same arguments to the constructors of RackStack::Use/Map/Run classes.
+# same arguments to the RackStack::use/map/run methods.
 ```
 
 Use as Middleware

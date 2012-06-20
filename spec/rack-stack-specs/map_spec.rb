@@ -12,6 +12,16 @@ describe RackStack, "#map" do
     @app.stack.should be_empty
   end
 
+  it "is a #map?" do
+    @app.stack.unshift RackStack.map(:foo, "/foo/path"){
+      run SimpleApp.new
+    }
+
+    @app.stack.first.map?.should be_true
+    @app.stack.first.use?.should be_false
+    @app.stack.first.run?.should be_false
+  end
+
   # For Rack::Builder compatibility.
   it "if RackStack includes at least 1 #map (URLMap), returns 404/Not Found (instead of raising NoMatchingApplicationError)" do
     @app.map "/foo" do
