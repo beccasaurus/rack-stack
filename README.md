@@ -35,7 +35,7 @@ status, headers, body = rack_stack.call(env)
 ```
 If you're familar with Rack::Builder, that should look very familiar!
 
-RackStack's API is actually intended to be [compatible with Rack::Builder's][compatibility].
+RackStack is actually intended to be [compatible with Rack::Builder (and Rack::URLMap)][compatibility].
 
 RackStack offers a number of additional features:
 
