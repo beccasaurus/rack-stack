@@ -52,6 +52,17 @@ class RackStack
     end
   end
 
+  # When enabled, RackStack behaves more like Rack::Builder (for compatibility).
+  # Could be useful for adding RackStack functionality to existing Rack::Builder rackups.
+  def self.rack_builder_compatibility
+    @rack_builder_compatibility = false if @rack_builder_compatibility.nil?
+    @rack_builder_compatibility
+  end
+
+  def self.rack_builder_compatibility=(value)
+    @rack_builder_compatibility = value
+  end
+
   # TODO document these use/map/run
   def self.use(*args, &block)
     RackStack::Use.new(*args, &block)
@@ -200,14 +211,15 @@ class RackStack
   # If this RackStack's request matchers don't match the a request, this will be used.
   # If the Responder fails to find a matching application for a request, this will be used.
   def default_response(env)
-    if default_app
-      default_app.call(env)
-    elsif is_a?(Map) || stack.any? {|component| component.is_a?(Map) }
-      # For Rack::Builder URLMap compatibility
-      [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{env["PATH_INFO"]}"]]
-    else
-      raise NoMatchingApplicationError.new(:rack_stack => self, :env => env)
+    return default_app.call(env) if default_app
+
+    if RackStack.rack_builder_compatibility
+      if is_a?(Map) || stack.any? {|component| component.is_a?(Map) }
+        return [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{env["PATH_INFO"]}"]]
+      end
     end
+
+    raise NoMatchingApplicationError.new(:rack_stack => self, :env => env)
   end
 
   # Returns a string representation of this RackStack (for debugging).

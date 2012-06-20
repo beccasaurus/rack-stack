@@ -79,6 +79,8 @@ RackStack.new do
   end
 
   # Run also works with :when.
+  # If RackStack handles a request and NONE of the conditionals match, 
+  # a NoMatchingApplicationError will be thrown.
   run @app, when: { host: "domain.com" }
 
 end

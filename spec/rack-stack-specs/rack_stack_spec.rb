@@ -247,6 +247,9 @@ describe RackStack do
     @app.map("/bar-map"){ run SimpleApp.new { write "Hi from /bar-map" }}
     get("/").body.should == "Hi from default app"
     @app.default_app = nil
+    expect { get("/") }.to raise_error(RackStack::NoMatchingApplicationError)
+
+    RackStack.rack_builder_compatibility = true
     get("/").body.should == "Not Found: /"
   end
 end

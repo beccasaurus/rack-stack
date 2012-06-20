@@ -30,6 +30,9 @@ describe RackStack, "#map" do
 
     get("/foo").body.should == "hi from /foo"
 
+    expect { get "/wrong-path" }.to raise_error(RackStack::NoMatchingApplicationError)
+
+    RackStack.rack_builder_compatibility = true
     get "/wrong-path"
     last_response.body.should == "Not Found: /wrong-path"
     last_response.status.should == 404
@@ -78,6 +81,9 @@ describe RackStack, "#map" do
 
     get("http://foo.com/path").body.should == "Hello from foo.com/path"
     get("http://bar.com/path").body.should == "Hello from bar.com/path"
+    expect { get("http://DIFF.com/path") }.to raise_error(RackStack::NoMatchingApplicationError)
+
+    RackStack.rack_builder_compatibility = true
     get("http://DIFF.com/path").body.should == "Not Found: /path"
   end
 
