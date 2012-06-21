@@ -1,6 +1,6 @@
 require "open-uri"
 
-# DogsAndCats fetches the current dog and cat names from dogs.com 
+# DogsAndCats fetches the current dog and cat names from dogs.com
 # and cats.com and returns them as a Hash, eg. { :dog_names => [], :cat_names => }
 class DogsAndCats
   def self.fetch
