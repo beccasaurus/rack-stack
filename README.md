@@ -54,14 +54,18 @@ RackStack offers a number of additional features:
  1. [Use as Middleware](#use-as-middleware)
  1. [Stack Manipulation](#stack-manipulation)
 
-Use Cases
----------
+Use Case
+--------
 
-Any scenario where you want to mount many Rack applications together into 1 application.
+I dunno.  Are there good use cases?  How would you find RackStack useful?
 
-RackStack can be used as a Rack Router (by making use of `:when` conditions and/or `#map` statements).
+Personally, I like to use RackStack to make it easy to mount mock web APIs in tests, eg. when using [Artifice][].  ([RackStack Artifice sample](https://github.com/remi/rack-stack/tree/master/spec/sample-use-cases/artifice))
 
-RackStack can be particularly useful for managing mock web APIs in tests, eg. when using [Artifice][].  ([RackStack Artifice sample](https://github.com/remi/rack-stack/tree/master/spec/sample-use-cases/artifice))
+Any scenario where you want to mount many Rack applications together into 1 application is a possible use case for RackStack.
+
+RackStack can also be used as a Rack Router (by making use of `:when` conditions and/or `#map` statements).
+
+Please share your use cases!  Also, if there's a better existing tool that solves these problems, I'd love to know!  Until then, enjoy RackStack!
 
 Conditional Logic
 -----------------
