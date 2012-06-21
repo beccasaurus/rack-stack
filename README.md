@@ -8,23 +8,13 @@ RackStack
 Installation
 ------------
 
-RackStack is intentionally not YET distrubuted on RubyGems.
+RackStack is intentionally not distrubuted on RubyGems *YET*.
 
-For now, using Bundle:
+For now, you can use Bundler to use RackStack from git:
 
 ```ruby
 gem "rack-stack", :git => "https://github.com/remi/rack-stack.git"
 ```
-
-### Once RackStack is on RubyGems.org
-
-Using Bundler:
-
-```ruby
-gem "rack-stack"
-```
-
-Or just `gem install rack-stack`
 
 Usage
 -----
